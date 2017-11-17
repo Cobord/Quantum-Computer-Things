@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry} 
+\geometry{letterpaper}   
+
+\usepackage{amsmath}
+\usepackage{amssymb,amsfonts,bbm,mathrsfs,stmaryrd}
+\usepackage{url}
+
+%%% Theorems and references %%%
+\usepackage[amsmath,thmmarks]{ntheorem}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\theoremstyle{change}
+
+\newtheorem{defn}[equation]{Definition}
+\newtheorem{definition}[equation]{Definition}
+\newtheorem{thm}[equation]{Theorem}
+\newtheorem{theorem}[equation]{Theorem}
+\newtheorem{prop}[equation]{Proposition}
+\newtheorem{proposition}[equation]{Proposition}
+\newtheorem{lemma}[equation]{Lemma}
+\newtheorem{cor}[equation]{Corollary}
+\newtheorem{conj}[equation]{Conjecture}
+\newtheorem{conjecture}[equation]{Conjecture}
+\newtheorem{exercise}[equation]{Exercise}
+\newtheorem{example}[equation]{Example}
+
+\theorembodyfont{\upshape}
+\theoremsymbol{\ensuremath{\Diamond}}
+\newtheorem{eg}[equation]{Example}
+\newtheorem{remark}[equation]{Remark}
+
+\theoremstyle{nonumberplain}
+
+\theoremsymbol{\ensuremath{\Box}}
+\newtheorem{proof}{Proof}
+
+\qedsymbol{\ensuremath{\Box}}
+
+\creflabelformat{equation}{#2(#1)#3} 
+
+\crefname{equation}{equation}{equations}
+\crefname{eg}{example}{examples}
+\crefname{defn}{definition}{definitions}
+\crefname{prop}{proposition}{propositions}
+\crefname{thm}{Theorem}{Theorems}
+\crefname{lemma}{lemma}{lemmas}
+\crefname{cor}{corollary}{corollaries}
+\crefname{remark}{remark}{remarks}
+\crefname{section}{Section}{Sections}
+\crefname{subsection}{Section}{Sections}
+
+\crefformat{equation}{#2equation~(#1)#3} 
+\crefformat{eg}{#2example~#1#3} 
+\crefformat{defn}{#2definition~#1#3} 
+\crefformat{prop}{#2proposition~#1#3} 
+\crefformat{thm}{#2Theorem~#1#3} 
+\crefformat{lemma}{#2lemma~#1#3} 
+\crefformat{cor}{#2corollary~#1#3} 
+\crefformat{remark}{#2remark~#1#3} 
+\crefformat{section}{#2Section~#1#3} 
+\crefformat{subsection}{#2Section~#1#3} 
+
+\Crefformat{equation}{#2Equation~(#1)#3} 
+\Crefformat{eg}{#2Example~#1#3} 
+\Crefformat{defn}{#2Definition~#1#3} 
+\Crefformat{prop}{#2Proposition~#1#3} 
+\Crefformat{thm}{#2Theorem~#1#3} 
+\Crefformat{lemma}{#2Lemma~#1#3} 
+\Crefformat{cor}{#2Corollary~#1#3} 
+\Crefformat{remark}{#2Remark~#1#3} 
+\Crefformat{section}{#2Section~#1#3} 
+\Crefformat{subsection}{#2Section~#1#3} 
+
+
+\numberwithin{equation}{section}
+
+
+%%% Tikz stuff %%%
+
+\usepackage{tikz}
+\tikzset{dot/.style={circle,draw,fill,inner sep=1pt}}
+\usepackage{braids}
+\usepackage{tqft}
+\usetikzlibrary{tqft}
+\usetikzlibrary{cd}
+\usetikzlibrary{arrows}
+%%% Letters, Symbols, Words %%%
+
+\newcommand\Aa{{\cal A}}
+\newcommand\Oo{{\cal O}}
+\newcommand\Uu{{\cal U}}
+\newcommand\NN{{\mathbb N}}
+\newcommand\RR{{\mathbb R}}
+\newcommand\Ddd{\mathscr{D}}
+\renewcommand{\d}{{\,\rm d}}
+\newcommand\T{{\rm T}}
+
+\newcommand\mono{\hookrightarrow}
+\newcommand\sminus{\smallsetminus}
+\newcommand\st{{\textrm{ s.t.\ }}}
+\newcommand\ket[1]{\mid #1 \rangle}
+\newcommand\bra[1]{\langle #1 \mid}
+\newcommand\setof[1]{\{ #1 \}}
+\newcommand\lt{<}
+\newcommand\abs[1]{ \mid #1 \mid }
+\newcommand\conjbar[1]{\overline{#1}}
+
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\dVol}{dVol}
+\DeclareMathOperator{\ev}{ev}
+\DeclareMathOperator{\fiber}{fiber}
+\DeclareMathOperator{\GL}{GL}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\tr}{tr}
+
+
+\title{Lindblad}
+\author{Ammar Husain}
+
+\begin{document}
+\maketitle
+
+\section{Lie Geometry of Density Matrix}
+
+Rather than parameterize $\rho$ through matrix entries, parameterize it via an exponential family. Use the known importance of generalized Gibbs ensembles. Also reveals the Poisson geometry underlying Fisher metric.
+
+\section{Lindblad}
+
+\begin{eqnarray*}
+\dot{\rho} (t) &=& - i [ H , \rho (t) ] + \sum_{k=1}^M L_k \rho (t) L_k^\dagger - \frac{1}{2} \setof{ L_k^\dagger L_k , \rho (t) }\\
+\end{eqnarray*}
+
+The action of $H$ on $V \otimes V^\dagger$ is given by coproduct and a sign flip for the $V^\dagger$ (More generally the antipode, but in this case just $-1$).
+
+\begin{eqnarray*}
+\Delta H &=& H \otimes 1 - 1 \otimes H\\
+\end{eqnarray*}
+
+\begin{eqnarray*}
+\dot{\rho} &\in& V \otimes V^\dagger\\
+\dot{\rho} &=& (-i \Delta H + \mathcal{G} ) \rho\\
+\mathcal{G} &=& \sum_{m=0}^M \bar{L}_m \otimes L_m - \frac{1}{2} Id \otimes L_m^\dagger L_m - \frac{1}{2} \bar{L}_m^\dagger \bar{L}_m \otimes Id\\
+\end{eqnarray*}
+
+\section{Effective Hamiltonian}
+
+\begin{definition}[$H_{eff}$]
+\begin{eqnarray*}
+H_{eff} &=& H - i \sum_k \frac{\gamma_k}{2} L_k^\dagger L_k\\
+\end{eqnarray*}
+
+The antiHermitian part is negative for $\gamma_k \geq 0$ in the sense of $L_k^\dagger L_k$ being a positive operator.
+
+In Lie algebraic terms $i H_{eff} \in \mathfrak{u}(n) \bigoplus \mathfrak{u}(n)^*_{\geq 0}$
+
+\begin{definition}[Iwasawa Poisson-Lie Group]
+The one coming from $KAN$ decomposition. So for $GL(n,\mathbb{C})$ regarded as a real Lie group, we get Hermitian and antiHermitian split. TODO: Write down this parameterization.
+\end{definition}
+
+\begin{eqnarray*}
+\frac{d\rho}{dt} &=& - i ( H_{eff} \rho - \rho H_{eff}^\dagger ) + \sum_{k} \gamma_k L_k \rho L_k^\dagger
+\end{eqnarray*}
+
+\section{Lie Parameterization}
+
+Let $\rho = $
+
+\end{definition}
+
+\section{Examples}
+
+\begin{example}
+\begin{eqnarray*}
+H &=& 0\\
+\frac{\partial \rho}{\partial t} &=& -i [0,\rho] + \frac{\gamma}{2} ( \sigma_z \rho \sigma_z - \frac{1}{2} \setof{ \sigma_z^\dagger \sigma_z , \rho } )\\
+\end{eqnarray*}
+\end{example}
+
+\begin{example}
+\begin{eqnarray*}
+H &=& \hbar \omega a^\dagger a\\
+L_1 &=& a\\
+\gamma_1 &=& \frac{\gamma}{2} (\bar{n}+1)\\
+L_2 &=& a^\dagger\\
+\gamma_2 &=& \frac{\gamma}{2} (\bar{n})\\
+H_{eff} &=& \hbar \omega a^\dagger a - i \frac{\gamma}{4} ( (\bar{n}+1) a^\dagger a + (\bar{n}) a a^\dagger )\\
+&=& \hbar \omega a^\dagger a - i \frac{\gamma}{4} ( (2 \bar{n}+1) a^\dagger a + \bar{n} )\\
+\end{eqnarray*}
+\end{example}
+
+\section{Hochschild Homology}
+
+\url{https://books.google.com/books?id=_9UBCAAAQBAJ&pg=PA88&lpg=PA88&dq=lindblad+hochschild&source=bl&ots=HI7IaXfgEe&sig=kOu64rDabBZnV024_gnlgv0pcl4&hl=en&sa=X&ved=0ahUKEwictbSF7MTXAhUKjlQKHfiRBWUQ6AEILTAB#v=onepage&q=lindblad\%20hochschild&f=false}
+
+\end{document}
