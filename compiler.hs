@@ -25,15 +25,24 @@ toGateName1A APauliX1 = PauliX1
 toGateName1A APauliY1 = PauliY1
 toGateName1A APauliZ1 = PauliZ1
 toGateName2A::AllowedGateNames2q -> GateNames2q
-toGateName1A ASqrtSwap2 = SqrtSwap2
+toGateName2A ASqrtSwap2 = SqrtSwap2
 
 -- Number of logical qubits
-data QubitIndices = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
-    deriving (Read, Show, Eq)
+maximumLogical :: Int
+maximumLogical = 8
+newtype QubitIndices = MakeLogicalIndex Int
+toQubitIndex :: Int -> QubitIndices
+toQubitIndex x = MakeLogicalIndex (x `mod` maximumLogical)
+fromQubitIndex :: QubitIndices -> Int
+fromQubitIndex (MakeLogicalIndex i) = i
+instance Show QubitIndices where
+    show x = show ((fromQubitIndex x) `mod` maximumLogical)
+instance Eq QubitIndices where
+    x == y = (((fromQubitIndex x) - (fromQubitIndex y)) `rem` maximumLogical == 0)
 
 -- The Steane code puts every qubit into 7 qubits
 -- if you don't want to put error correction then set all the ECCIndex's to 1
-data ErrorCorrectionFlags = None | Steane | BitFlip | SignFlip | Shor
+data ErrorCorrectionFlags = None | Steane | BitFlip | SignFlip | Shor deriving (Read,Eq,Show)
 internalQubits::ErrorCorrectionFlags -> Int
 internalQubits None = 1
 internalQubits Steane = 7
@@ -41,27 +50,25 @@ internalQubits BitFlip = 3
 internalQubits SignFlip = 3
 internalQubits Shor = 9
 internalQubits2::[ErrorCorrectionFlags] -> Int
-internalQubits2 xs = foldl (\acc x -> acc*x) 1 xs
-ECCFlag::[ErrorCorrectionFlags]
-ECCFlag = [Steane]
+internalQubits2 xs = foldl (\acc x -> acc*(internalQubits x)) 1 xs
+eccFlag :: [ErrorCorrectionFlags]
+eccFlag = [Steane]
 maximumInternal::Int
-maximumInternal = internalQubits2 ECCFlag
-data ECCIndex = Int
-instance Read ECCIndex where read x = ((read x)::Int) `mod` maximumInternal
-instance Show ECCIndex where show x = show (x `mod` maximumInternal)
-instance Eq ECCIndex where eq x y = ((x-y) `rem` maximumInternal == 0)
+maximumInternal = internalQubits2 eccFlag
+newtype ECCIndex = MakeECCIndex Int
+toECCQubitIndex :: Int -> ECCIndex
+toECCQubitIndex x = MakeECCIndex (x `mod` maximumInternal)
+fromECCQubitIndex :: ECCIndex -> Int
+fromECCQubitIndex (MakeECCIndex i) = i
+instance Show ECCIndex where show x = show ((fromECCQubitIndex x) `mod` maximumInternal)
+instance Eq ECCIndex where x==y = (((fromECCQubitIndex x)-(fromECCQubitIndex y)) `rem` maximumInternal == 0)
 -- If don't want error correction
---ECCFlag = [Steane]
---data ECCIndex = 0|1|2|3|4|5|6 deriving (Read,Show,Eq) if the modulo doesn't work
---ECCFlag = [None]
---data ECCIndex = 0 deriving (Read,Show,Eq)
+--eccFlag = [None]
 defaultECCIndex::ECCIndex
-defaultECCIndex = 0
-data QubitIndicesECC = QubitIndicesECC{ qubitIndexECC:: QubitIndices, internalIndex:: ECCIndex} deriving (Read, Eq)
+defaultECCIndex = toECCQubitIndex 0
+data QubitIndicesECC = QubitIndicesECC{ qubitIndexECC:: QubitIndices, internalIndex:: ECCIndex} deriving (Eq)
 instance Show QubitIndicesECC where
     show x = show (qubitIndexECC x) ++ "I" ++ show (internalIndex x)
-instance Read QubitIndicesECC where
-    read x = QubitIndicesECC{ qubitIndexECC=read (head y), internalIndex=read (last y)} where y = (splitOneOf "Ii" x)
 -- a qubit in the error correcting code is shown and read as 14I3 for the 3rd internal index of the 14th logical qubit
 
 --Gates stores a name and the indices of which qubits it is operating on
@@ -80,11 +87,11 @@ default1qAllowedGate = AllowedGates1q{allowedname1q=PauliX,allowedinvolvedQubit=
 default2qAllowedGate = AllowedGates2q{allowedname2q=SqrtSwap,allowedinvolvedQubits=(1,2)}
 data AllowedGates = Either AllowedGates1q AllowedGates2q deriving (Eq)
 instance Show AllowedGates where
-        show x =
+        show x
                 | isLeft x = show (fromLeft default1qAllowedGate x)
                 | otherwise = show (fromRight default2qAllowedGate x)
 instance Read AllowedGates where
-        read x =
+        read x
                 | y =="1q" = Left read x
                 | y =="2q" = Right read x
                 where y = head tail words x
@@ -102,13 +109,13 @@ instance Read AllowedGates2qECC where
         read x = AllowedGate2qECC{ allowedname2qECC=read (head y), allowedinvolvedQubitsECC=read (last y)} where y = (words x)
 default1qAllowedGateECC = AllowedGates1qECC{allowedname1q=PauliX,allowedinvolvedQubit=defaultECCIndex}
 default2qAllowedGateECC = AllowedGates2qECC{allowedname2q=SqrtSwap,allowedinvolvedQubits=(defaultECCIndex,defaultECCIndex)}
-data AllowedGatesECC = Either AllowedGates1qECC AllowedGates2qECC deriving (Eq)
+type AllowedGatesECC = Either AllowedGates1qECC AllowedGates2qECC
 instance Show AllowedGatesECC where
-        show x =
+        show x
                 | isLeft x = show (fromLeft default1qAllowedGateECC x)
                 | otherwise = show (fromRight default2qAllowedGateECC x)
 instance Read AllowedGatesECC where
-        read x =
+        read x
                 | y =="1q" = Left read x
                 | y =="2q" = Right read x
                 where y = head tail words x
@@ -118,20 +125,20 @@ instance Show Gates1q where
         show x = show (name1q x) ++ " on qubit " ++ show (involvedQubit x)
 instance Read Gates1q where
         read x = Gate1q{ name1q=read (head y), involvedQubit=read (last y)} where y = (words x)
-data Gates2q = Gates2q{ name2q::GateNames2q, involvedQubits::(QubitIndices,QubitIndices)}
+data Gates2q = Gates2q{ name2q::GateNames2q, involvedQubits2::(QubitIndices,QubitIndices)}
 instance Show Gates2q where
         show x = show (name2q x) ++ " on qubits " ++ show (involvedQubits x)
 instance Read Gates2q where
-        read x = Gate2q{ name2q=read (head y), involvedQubits=read (last y)} where y = (words x)
+        read x = Gate2q{ name2q=read (head y), involvedQubits2=read (last y)} where y = (words x)
 default1qGate = Gates1q{name1q=PauliX,involvedQubit=1}
-default2qGate = Gates2q{name2q=SqrtSwap,involvedQubits=(1,2)}
-data Gates = Either Gates1q Gates2q
+default2qGate = Gates2q{name2q=SqrtSwap,involvedQubits2=(1,2)}
+type Gates = Either Gates1q Gates2q
 instance Show Gates where
-        show x =
+        show x
                 | isLeft x = show (fromLeft default1qGate x)
                 | otherwise = show (fromRight default2qGate x)
 instance Read Gates where
-        read x =
+        read x
                 | y =="1q" = Left read x
                 | y =="2q" = Right read x
                 where y = head tail words x
@@ -151,46 +158,46 @@ type Circuit = [Gates]
 --hardwareImplementation2 [] = []
 --hardwareImplementation2 x:xs = (hardwareImplementation x):(hardwareImplementation2 xs)
 
-applyErrorCorrection::[Gates] -> [ErrorCorrectionFlags] -> ACircuitECC
+--applyErrorCorrection::[Gates] -> [ErrorCorrectionFlags] -> ACircuitECC
 
-class (Eq a) => GeneralGate g where
+class GeneralGate g where
         name::g -> GateName
         arity::g -> Int
         involvedQubits::g->[Either QubitIndices QubitIndicesECC]
         --errorCorrectingCode::g -> ACircuitECC
 
 instance GeneralGate AllowedGates where
-        name x =
+        name x
                 | isLeft x = toGateName1 $ toGateName1A $ allowedname1q $ fromLeft default1qAllowedGate x
                 | otherwise = toGateName2 $ toGateName2A $ allowedname2q $ fromRight default2qAllowedGate x
-        arity x =
+        arity x
                 | isLeft x = 1
                 | otherwise = 2
-		involvedQubits x = 
+		involvedQubits x
                 | isLeft x = [Left (allowedinvolvedQubit $ fromLeft default1qAllowedGate x)]
                 | otherwise = [Left fst z,Left snd z]
                 where z = allowedinvolvedQubits $ fromRight default2qAllowedGate y
         --errorCorrectingCode x = use the ECCFlag one step at a time
 instance GeneralGate AllowedGatesECC where
-        name x =
+        name x
                 | isLeft x = toGateName1 $ toGateName1A $ allowedname1qECC $ fromLeft default1qAllowedGateECC x
                 | otherwise = toGateName2 $ toGateName2A $ allowedname2qECC $ fromRight default2qAllowedGateECC x
-        arity x =
+        arity x
                 | isLeft x = 1
                 | otherwise = 2
-		involvedQubits x = 
+		involvedQubits x
                 | isLeft x = [Right (allowedinvolvedQubitECC $ fromLeft default1qAllowedGateECC x)]
                 | otherwise = [Right fst z,Right snd z]
                 where z = allowedinvolvedQubitsECC $ fromRight default2qAllowedGateECC y
         --errorCorrectingCode x = [x]
 instance GeneralGate Gates where
-        name x =
+        name x
                 | isLeft x = toGateName1 $ name1q $ fromLeft default1qAllowedGate x
                 | otherwise = toGateName2 $ name2q $ fromRight default2qAllowedGate x
-        arity x =
+        arity x
                 | isLeft x = 1
                 | otherwise = 2
-        involvedQubits x =
+        involvedQubits x
                 | isLeft x = [Left (involvedQubit $ fromLeft default1qGate x)]
                 | otherwise = [Left fst z,Left snd z]
                 where z = involvedQubits $ fromRight default2qGate y
@@ -203,7 +210,7 @@ instance GeneralGate Gates where
 --The most obvious way to ensure two gates commute is if they operate on different qubits
 --In an overly cautious move say False if they might not commute, without examining content of gates
 definitelyCommute::(GeneralGate g)=> g -> g -> Bool
-definitelyCommute x y =
+definitelyCommute x y
     | inCommon==[] = True
 	| otherwise = False
     where inCommon=(involvedQubits x) 'intersect' (involvedQubits y)
