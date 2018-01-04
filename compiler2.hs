@@ -2,7 +2,6 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
-import Prelude hiding (tail, head, replicate)
 data Nat = Z | S Nat deriving (Show)
 
 infixl 6 :+
@@ -30,7 +29,7 @@ toList (x :- xs) = x : toList xs
 instance Show a => Show (Vector a n) where
   showsPrec d = showsPrec d . toList
 
-data SNat n where
+{-data SNat n where
   SZ :: SNat Z
   SS :: SNat n -> SNat (S n)
 
@@ -41,7 +40,7 @@ replicate (SS n) a = a :- replicate n a
 fromList:: SNat n -> [Int] -> Vector Int n
 fromList SZ _ = Nil
 fromList (SS n) [] = replicate (SS n) (-1)
-fromList (SS n) (x:xs) = x :- (fromList n xs)
+fromList (SS n) (x:xs) = x :- (fromList n xs)-}
 
 data ErrorCorrectionFlags = Steane | BitFlip | SignFlip | Shor deriving (Read,Eq,Show)
 
@@ -68,6 +67,20 @@ toList2 (Int4 x xs) = x : toList2 xs
 instance Show a => Show (InternalIndices a n) where
   showsPrec d = showsPrec d . toList2
 
+data ECCSchemeCopy n where
+  NoneCopy :: ECCSchemeCopy None
+  S1Copy :: ECCSchemeCopy n -> ECCSchemeCopy (S1 n)
+  S2Copy :: ECCSchemeCopy n -> ECCSchemeCopy (S2 n)
+  S3Copy :: ECCSchemeCopy n -> ECCSchemeCopy (S3 n)
+  S4Copy :: ECCSchemeCopy n -> ECCSchemeCopy (S4 n)
+
+myreplicate :: ECCSchemeCopy n -> a -> InternalIndices a n
+myreplicate NoneCopy x = (Lgcl x)
+myreplicate (S1Copy n) x = Int1 x (myreplicate n x)
+myreplicate (S2Copy n) x = Int2 x (myreplicate n x)
+myreplicate (S3Copy n) x = Int3 x (myreplicate n x)
+myreplicate (S4Copy n) x = Int4 x (myreplicate n x)
+
 codeLengths::ErrorCorrectionFlags -> Int
 codeLengths Steane = 7
 codeLengths BitFlip = 3
@@ -88,4 +101,35 @@ reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) xs
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) xs
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) xs
 
-data GateData n = GateData{name::String, myinvolvedQubit::(InternalIndices Int n)} deriving (Eq,Show)
+data GateNames = PauliX1 | PauliY1 | PauliZ1 | SqrtSwap2 | CNOT2 deriving (Read, Show, Eq)
+
+arity::GateNames -> Int
+arity PauliX1 = 1
+arity PauliY1 = 1
+arity PauliZ1 = 1
+arity SqrtSwap2 = 2
+arity CNOT2 = 2
+
+data GateData n = GateData{name::GateNames, myinvolvedQubits::[InternalIndices Int n]} deriving (Eq,Show)
+
+arity2:: GateData n -> Int
+arity2 x = arity (name x)
+
+allDifferent :: (Eq a) => [a] -> Bool
+allDifferent []     = True
+allDifferent (x:xs) = x `notElem` xs && allDifferent xs
+
+--check that the arity matches the number of qubits operated on. Then makes sure that the two are distinct if supposed to operate on 2
+checkValidGate::GateData n -> Bool
+checkValidGate x = (((( length qubits)) == (arity2 x)) && (allDifferent qubits)) where qubits = ( myinvolvedQubits x)
+
+{-
+implementECC1:: (GateData n) -> [(GateData (S1 n)])
+implementECC1Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC2:: (GateData n) -> [(GateData (S2 n)])
+implementECC2Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC3:: (GateData n) -> [(GateData (S3 n)])
+implementECC3Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC4:: (GateData n) -> [(GateData (S4 n)])
+implementECC4Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+-}
