@@ -101,12 +101,14 @@ reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) xs
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) xs
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) xs
 
-data GateNames = PauliX1 | PauliY1 | PauliZ1 | SqrtSwap2 | CNOT2 deriving (Read, Show, Eq)
+data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 deriving (Read, Show, Eq)
 
 arity::GateNames -> Int
 arity PauliX1 = 1
 arity PauliY1 = 1
 arity PauliZ1 = 1
+arity Hadamard1 = 1
+arity QuarterPhase1 = 1
 arity SqrtSwap2 = 2
 arity CNOT2 = 2
 
@@ -124,12 +126,32 @@ checkValidGate::GateData n -> Bool
 checkValidGate x = (((( length qubits)) == (arity2 x)) && (allDifferent qubits)) where qubits = ( myinvolvedQubits x)
 
 {-
+--Take a gate on n qubits and provides the gate on n*k qubits as the first of the approptriate batch of k
+implementECC1Helper :: GateData n -> GateData (S1 n)
+implementECC1Helper x = GateData(name=(name x),myinvolvedQubits = Int1 0 (myinvolvedQubits x))
+implementECC2Helper :: GateData n -> GateData (S2 n)
+implementECC2Helper x = GateData(name=(name x),myinvolvedQubits = Int2 0 (myinvolvedQubits x))
+implementECC3Helper :: GateData n -> GateData (S3 n)
+implementECC3Helper x = GateData(name=(name x),myinvolvedQubits = Int3 0 (myinvolvedQubits x))
+implementECC4Helper :: GateData n -> GateData (S4 n)
+implementECC4Helper x = GateData(name=(name x),myinvolvedQubits = Int4 0 (myinvolvedQubits x))
+-}
+
+{-
 implementECC1:: (GateData n) -> [(GateData (S1 n)])
+implementECC1 GateData(name=y,myinvolvedQubits=[x]) = [?decoding circuit]:(implementECC1Helper y):[?encoding circuit]
 implementECC1Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC1Mapper x = concatMap (implementECC1) x
 implementECC2:: (GateData n) -> [(GateData (S2 n)])
-implementECC2Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC2 GateData(name=y,myinvolvedQubits=[x]) = [?decoding circuit]:(implementECC2Helper y):[?encoding circuit]
+implementECC2Mapper:: [(GateData n)] -> [(GateData (S2 n)])
+implementECC2Mapper x = concatMap (implementECC2) x
 implementECC3:: (GateData n) -> [(GateData (S3 n)])
-implementECC3Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC3 GateData(name=y,myinvolvedQubits=[x]) = [?decoding circuit]:(implementECC3Helper y):[?encoding circuit]
+implementECC3Mapper:: [(GateData n)] -> [(GateData (S3 n)])
+implementECC3Mapper x = concatMap (implementECC3) x
 implementECC4:: (GateData n) -> [(GateData (S4 n)])
-implementECC4Mapper:: [(GateData n)] -> [(GateData (S1 n)])
+implementECC4 GateData(name=y,myinvolvedQubits=[x]) = [?decoding circuit]:(implementECC4Helper y):[?encoding circuit]
+implementECC4Mapper:: [(GateData n)] -> [(GateData (S4 n)])
+implementECC4Mapper x = concatMap (implementECC4) x
 -}
