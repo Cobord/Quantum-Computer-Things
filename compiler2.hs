@@ -155,3 +155,12 @@ implementECC4 GateData(name=y,myinvolvedQubits=[x]) = [?decoding circuit]:(imple
 implementECC4Mapper:: [(GateData n)] -> [(GateData (S4 n)])
 implementECC4Mapper x = concatMap (implementECC4) x
 -}
+
+--Common logical circuits
+{-
+-- quantumFourierTransform N gives the circuit that implements said QFT on N logical qubits indexed as 0 through N-1
+-- works inductively bc given as related to (quantumFourierTransform N-1) before any potential simplifications
+quantumFourierTransform :: Int -> [GateData None]
+-- Grover's search takes the black boxed circuit and and integer m which should be O(\sqrt{N}) and produce the grovers Search algorithm circuit
+groversSearch :: [GateData None] -> Int -> [GateData None]
+-}
