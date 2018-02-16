@@ -170,6 +170,19 @@ Then feed that into the reducing algorithm. Repeat until intervening property sa
 Algorithm for reducing words in Coxeter group\\
 \url{https://mathoverflow.net/questions/109071/algorithm-for-reducing-words-in-a-coxeter-group}
 
+\begin{definition}[Automatic Group]
+A group $G$ with generators $A$ is a set of finite state automata. There is a word acceptor which inputs a group element and a word and outputs accept or not. It accepts at least one word for every $g$. There are also $\abs{A}+1$ multipliers which input a pair $w_1,w_2$ of words that are each accepted and outputs accept or not based on whether $w_1 a = w_2$ where $a \in A \bigcup 1$ is which multiplier we are using.\\
+The word acceptor tells you whether the word is reduced and the multiplier can now check equality on these reduced form with less difficulty.
+\end{definition}
+
+\begin{example}
+Finite groups, Euclidean groups, finitely generated Coxeter groups are all automatic.
+\end{example}
+
+\begin{theorem}
+Automatic groups have the property that any given word can be put into canonical form in quadratic time. Putting any two words into canonical form and then checking equality solves the word problem in quadratic time.
+\end{theorem}
+
 \subsection{X,Y,Z,H and Swaps}
 
 \begin{lemma}
