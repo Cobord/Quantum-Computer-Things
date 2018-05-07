@@ -2,6 +2,12 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+
+import qualified Data.List as L
+import qualified Math.Combinatorics.Poset as PS
+import qualified Math.Combinatorics.Digraph as DG
+import qualified Control.Exception as E
+
 data Nat = Z | S Nat deriving (Show)
 
 infixl 6 :+
@@ -116,7 +122,7 @@ reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGat
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices2 xs)
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices2 xs)
 
-data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 | (CRTheta n) deriving (Read, Show, Eq)
+data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 deriving (Read, Show, Eq)
 
 -- how many qubits does this kind of gate operate on
 arity::GateNames -> Int
@@ -141,15 +147,45 @@ allDifferent (x:xs) = x `notElem` xs && allDifferent xs
 
 --check that the arity matches the number of qubits operated on. Then makes sure that the two are distinct if supposed to operate on 2
 checkValidGate::GateData n -> Bool
-checkValidGate x = (((( length qubits)) == (arity2 x)) && (allDifferent qubits)) where qubits = ( myinvolvedQubits x)
+checkValidGate x = (((( length qubits)) == (arity2 x)) && (allDifferent qubits)) where qubits = (map reduceGateIndices2 (myinvolvedQubits x))
+
+validateGate :: GateData n -> GateData n
+validateGate x
+                | (checkValidGate x) = GateData {name=myName,myinvolvedQubits=(map reduceGateIndices2 myInv)}
+                | otherwise = error $ "Invalid Gate"++(show x)
+                 where { myName=(name x) ; myInv = (myinvolvedQubits x)}
+
+validateCircuit :: [GateData n] -> [GateData n]
+validateCircuit xs = map validateGate xs
 
 -- assuming g1 and g2 are valid gates check if they commute in the simplest way which is they have disjoint supports
 definitelyCommute:: GateData n -> GateData n -> Bool
 definitelyCommute x y
     | inCommon==[] = True
-	| otherwise = False
-    where inCommon=(myinvolvedQubits x) 'intersect' (myinvolvedQubits y)
+    | otherwise = (x == y)
+    where inCommon=(map reduceGateIndices2 (myinvolvedQubits x)) `L.intersect` (map reduceGateIndices2 (myinvolvedQubits y))
 
+newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
+instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2)) = (y1 `compare` y2)
+
+newes :: a -> [a] -> [(a,a)]
+newes x dependence = [(v,x) | v <- dependence]
+myReplace :: Eq a => [a] -> a -> [a] -> [a]
+myReplace oldTop new toReplace = new:(oldTop L.\\ toReplace)
+makeDAGHelper :: ([(GateData2 n, GateData2 n)],[GateData2 n]) -> GateData2 n -> ([(GateData2 n, GateData2 n)],[GateData2 n])
+makeDAGHelper (es,vs) x
+                       | (dependence == []) = (es,x:vs)
+                       | otherwise = (es++(newes x dependence), myReplace vs x dependence)
+                       where dependence = [v | v <- vs, not $ definitelyCommute (fst $ myData x) (fst $ myData v) ]
+
+makeDAGHelper2 :: [GateData2 n] -> ([(GateData2 n, GateData2 n)],[GateData2 n])
+makeDAGHelper2 circuit = foldl makeDAGHelper ([],[]) circuit
+
+makeDAG :: [GateData2 n] -> DG.Digraph (GateData2 n)
+makeDAG circuit = DG.DG circuit (fst $ makeDAGHelper2 circuit)
+
+makeDAG2 :: [GateData n] -> PS.Poset (GateData2 n)
+makeDAG2 circuit = PS.reachabilityPoset $ makeDAG (map GateData2 (zip circuit [1..]))
 
 {-
 -- puts a gate with same name in the 0th index of the corresponding error correction flag. This corresponds to the case when just adjoined ancillas
