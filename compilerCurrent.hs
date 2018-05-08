@@ -167,6 +167,7 @@ definitelyCommute x y
 
 newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
 instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2)) = (y1 `compare` y2)
+data Initialize = InitializeGate
 
 newes :: a -> [a] -> [(a,a)]
 newes x dependence = [(v,x) | v <- dependence]
@@ -186,6 +187,21 @@ makeDAG circuit = DG.DG circuit (fst $ makeDAGHelper2 circuit)
 
 makeDAG2 :: [GateData n] -> PS.Poset (GateData2 n)
 makeDAG2 circuit = PS.reachabilityPoset $ makeDAG (map GateData2 (zip circuit [1..]))
+
+-- |The ordinal sum of two posets
+osum :: PS.Poset a -> PS.Poset b -> PS.Poset (Either a b)
+osum (PS.Poset (setA,poA)) (PS.Poset (setB,poB)) = PS.Poset (set,po)
+    where set = map Left setA ++ map Right setB
+          po (Left a1) (Left a2) = poA a1 a2
+          po (Right b1) (Right b2) = poB b1 b2
+          po (Left _) (Right _) = True
+          po _ _ = False
+
+bottomPoset :: PS.Poset Initialize
+bottomPoset = PS.Poset ([InitializeGate],(\x -> \y -> True))
+
+makeDAG3 :: [GateData n] -> PS.Poset (Either Initialize (GateData2 n))
+makeDAG3 circuit = osum bottomPoset (makeDAG2 circuit)
 
 {-
 -- puts a gate with same name in the 0th index of the corresponding error correction flag. This corresponds to the case when just adjoined ancillas
