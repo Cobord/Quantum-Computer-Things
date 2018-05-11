@@ -5,6 +5,7 @@
 
 import qualified Data.List as L
 import qualified Math.Combinatorics.Poset as PS
+import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Math.Combinatorics.Digraph as DG
 import qualified Control.Exception as E
 
@@ -165,10 +166,12 @@ definitelyCommute x y
     | otherwise = (x == y)
     where inCommon=(map reduceGateIndices2 (myinvolvedQubits x)) `L.intersect` (map reduceGateIndices2 (myinvolvedQubits y))
 
+--when making the computation DAG will have multiple instances of the same gate, so putting an extra integer in to separate everything out so none equal
 newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
 instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2)) = (y1 `compare` y2)
 data Initialize = InitializeGate
 
+-- builds up the DAG from the beginning on, by putting edges in when the gate about to add has dependence on something before
 newes :: a -> [a] -> [(a,a)]
 newes x dependence = [(v,x) | v <- dependence]
 myReplace :: Eq a => [a] -> a -> [a] -> [a]
@@ -185,6 +188,7 @@ makeDAGHelper2 circuit = foldl makeDAGHelper ([],[]) circuit
 makeDAG :: [GateData2 n] -> DG.Digraph (GateData2 n)
 makeDAG circuit = DG.DG circuit (fst $ makeDAGHelper2 circuit)
 
+-- DAG to poset
 makeDAG2 :: [GateData n] -> PS.Poset (GateData2 n)
 makeDAG2 circuit = PS.reachabilityPoset $ makeDAG (map GateData2 (zip circuit [1..]))
 
@@ -200,8 +204,32 @@ osum (PS.Poset (setA,poA)) (PS.Poset (setB,poB)) = PS.Poset (set,po)
 bottomPoset :: PS.Poset Initialize
 bottomPoset = PS.Poset ([InitializeGate],(\x -> \y -> True))
 
+-- makeDAG2 had multiple gates at the bottom because any one of them could show up first
+-- drawing function required a unique bottom so put that in with an ordinal sum
 makeDAG3 :: [GateData n] -> PS.Poset (Either Initialize (GateData2 n))
 makeDAG3 circuit = osum bottomPoset (makeDAG2 circuit)
+
+--partition Logic
+compareSetPartitions :: SetPart.SetPartition -> SetPart.SetPartition -> Bool
+compareSetPartitions sp1 sp2 = and [isXSubset (Set.fromList x) sp1 | x <- SetPart.fromSetPartition sp2 ] where 
+                               isXSubset x1 sp1' = or [ Set.isSubsetOf x1 (Set.fromList y) | y <- SetPart.fromSetPartition sp1' ]
+partitionPoset :: Int -> PS.Poset SetPart.SetPartition
+partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
+
+-- a list of blocks B_i so the state is said to be in that associated Segre embedding and no refinement thereof
+-- the boolean is there to say if it is pure or not. So (B_1,False),(B_2,True)
+-- means a density matrix that is the form \rho_1 \otimes \rho_2 with \rho_2 being rank 1 and \rho_1 higher rank
+newtype EntanglementPattern n = EntanglementPattern {myPattern :: [([InternalIndices n],Bool)]} deriving (Eq,Show)
+
+-- if the entanglement Pattern tells you there is a given set partition describing the entanglement
+-- then apply a gate g acting on qubits i and j, give the new set partition that puts i and j into the same block
+-- these ones keep all the boolean flags True because the entire state is still pure
+-- when combining blocks the boolean flags get and'ed together
+--changeEntanglementPattern :: GateData n -> EntanglementPattern n -> EntanglementPattern n
+-- fold for an entire circuit
+--changeEntanglementPattern2 :: [GateData n] -> EntanglementPattern n -> EntanglementPattern n
+-- make the block that contains index i into a mixed state
+--measure :: InternalIndices n -> EntanglementPattern n -> EntanglementPattern n
 
 {-
 -- puts a gate with same name in the 0th index of the corresponding error correction flag. This corresponds to the case when just adjoined ancillas
