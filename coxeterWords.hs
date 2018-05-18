@@ -1,7 +1,20 @@
 import qualified Data.Graph as Graph
 import Data.Maybe
 
-data CoxGens = S12 | S23 | S34 | S45 deriving (Show,Read,Eq,Enum,Bounded)
+data CoxGens = S0 | S1 | S2 | S3 deriving (Show,Read,Eq,Enum,Bounded)
+
+myMij :: CoxGens -> CoxGens -> Maybe Int
+myMij S0 S1 = Just 3
+myMij S1 S0 = Just 3
+myMij S1 S2 = Just 3
+myMij S1 S3 = Just 3
+myMij S2 S1 = Just 3
+myMij S2 S3 = Just 3
+myMij S3 S1 = Just 3
+myMij S3 S2 = Just 3
+myMij gen1 gen2
+               | (gen1 == gen2) = Just 1
+               | otherwise = Just 2
 
 allGens = [(minBound::CoxGens) ..]
 
@@ -17,6 +30,10 @@ toTest xs z = [(i,j) | (i,j) <- zip is (tail is)] where is = [i | (i, j) <- zip 
 splitWord :: [CoxGens] -> (Int,Int) -> [CoxGens]
 splitWord xs (j1,j2) = [x | (i,x) <- zip [0..] xs , i>=j1 , i<=j2 ]
 
+-- split word into 3 pieces before j1, in between and after j2
+splitWord2 :: [CoxGens] -> (Int,Int) -> ([CoxGens],[CoxGens],[CoxGens])
+splitWord2 xs (j1,j2) = ([x | (i,x) <- zipped , i<j1],[x | (i,x) <- zipped , i>=j1 , i<=j2 ],[x | (i,x) <- zipped , i>j2 ] ) where zipped = zip [0..] xs
+
 -- neighbors in the coxeter graph. Uses Maybe to account for the fact that might be infinite
 neighbors :: CoxGens -> (CoxGens -> CoxGens -> Maybe Int) -> [CoxGens]
 neighbors x mij = [y | y <- allGens , (isNothing $ (mij x y)) || ((fromJust $ (mij x y)) > 2)]
@@ -25,13 +42,21 @@ neighbors x mij = [y | y <- allGens , (isNothing $ (mij x y)) || ((fromJust $ (m
 containsAllNeighbors :: [CoxGens] -> CoxGens -> (CoxGens -> CoxGens -> Maybe Int) -> Bool
 containsAllNeighbors xs z mij = and [elem y xs | y <- neighbors z mij]
 
---reduciblePiece :: [CoxGens] -> CoxGens -> (CoxGens -> CoxGens -> Int)
-
 -- take a word in the coxeter generators and the function encoding m_ij and give
 -- the indices of a potentially reducible subword
 interveningNeighbors :: [CoxGens] -> (CoxGens -> CoxGens -> Maybe Int) -> [(Int,Int)]
 interveningNeighbors xs mij = concat [[ij | ij <- toTest xs z, not $ containsAllNeighbors (splitWord xs ij) z mij] | z <- allGens]
 
 -- each of these will fail to have all their neighbors
-offendingWords :: [CoxGens] -> (CoxGens -> CoxGens -> Maybe Int) -> [[CoxGens]]
-offendingWords xs mij = [splitWord xs ij | ij <- interveningNeighbors xs mij]
+offendingSubwords :: [CoxGens] -> (CoxGens -> CoxGens -> Maybe Int) -> [[CoxGens]]
+offendingSubwords xs mij = [splitWord xs ij | ij <- interveningNeighbors xs mij]
+
+--takes the first offending subword it finds and breaks the word into prefix, potentially reducible word and suffix
+-- need a seperate algorithm to reduce the middle word
+-- this then gets put back together and the cycle repeats
+splitAtOffending :: [CoxGens] -> (CoxGens -> CoxGens -> Maybe Int) -> ([CoxGens],[CoxGens],[CoxGens])
+splitAtOffending xs mij = splitWord2 xs (head $ interveningNeighbors xs mij)
+
+--should say the subword s1,s0,s2,s1 is offending because there is no s3 intervening
+-- that indicates should pay further attention to that word because it might be reducible
+example = offendingSubwords [S0,S1,S0,S2,S1] myMij
