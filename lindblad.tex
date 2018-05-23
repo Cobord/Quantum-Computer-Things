@@ -191,6 +191,16 @@ H_{eff} &=& \hbar \omega a^\dagger a - i \frac{\gamma}{4} ( (\bar{n}+1) a^\dagge
 \end{eqnarray*}
 \end{example}
 
+\section{Fisher Information Norm of Lindblad Vector Field}
+
+The ordinary differential equation described above determines a vector field on the space of density matrices $(M,g)$ where $g$ is the Fisher information metric tensor. So one can evaluate $v (\rho)$ which is the direction of flow when starting at $\rho$. One can use $g$ to give $g (v (\rho) , v(\rho) )$ which measures the length thereof. The actual dynamics is a trajectory for this vector field by solving for the flow $\phi_t$. We want to calculate the length of the curve.
+
+\begin{eqnarray*}
+L &=& \int_0^T \sqrt{g (v (\rho (t) ) , v(\rho (t) ) )} dt
+\end{eqnarray*}
+
+where $\rho (t) = \phi_t \rho (0)$ is the solution to the ordinary differential equation on $M$.
+
 \section{Hochschild Homology}
 
 \url{https://books.google.com/books?id=_9UBCAAAQBAJ&pg=PA88&lpg=PA88&dq=lindblad+hochschild&source=bl&ots=HI7IaXfgEe&sig=kOu64rDabBZnV024_gnlgv0pcl4&hl=en&sa=X&ved=0ahUKEwictbSF7MTXAhUKjlQKHfiRBWUQ6AEILTAB#v=onepage&q=lindblad\%20hochschild&f=false}
