@@ -6,6 +6,7 @@
 import qualified Data.List as L
 import qualified Math.Combinatorics.Poset as PS
 import qualified Math.Combinat.Partitions.Set as SetPart
+import qualified Data.Set as Set
 import qualified Math.Combinatorics.Digraph as DG
 import qualified Control.Exception as E
 
@@ -219,17 +220,32 @@ partitionPoset n = PS.Poset (SetPart.setPartitions n, compareSetPartitions)
 -- a list of blocks B_i so the state is said to be in that associated Segre embedding and no refinement thereof
 -- the boolean is there to say if it is pure or not. So (B_1,False),(B_2,True)
 -- means a density matrix that is the form \rho_1 \otimes \rho_2 with \rho_2 being rank 1 and \rho_1 higher rank
-newtype EntanglementPattern n = EntanglementPattern {myPattern :: [([InternalIndices n],Bool)]} deriving (Eq,Show)
+newtype EntanglementPattern n = EntanglementPattern {myPattern :: [([(InternalIndices Int n)],Bool)]} deriving (Eq,Show)
+
+anyxsInside :: (Eq a) => [a] -> [a] -> Bool
+anyxsInside xs thisList = or [elem x thisList | x <- xs]
+
+modifyPattern :: [InternalIndices Int n] -> EntanglementPattern n -> EntanglementPattern n
+modifyPattern [] pattern = pattern
+modifyPattern xs pattern = EntanglementPattern {myPattern=((allInvolved,purity):[y | y<- myPattern pattern, not $ anyxsInside xs (fst y)])}
+                            where {allInvolved = concat [fst y1 | y1<- myPattern pattern, anyxsInside xs (fst y1)];
+                                   purity = and [snd y2 | y2 <- myPattern pattern, anyxsInside xs (fst y2)]}
 
 -- if the entanglement Pattern tells you there is a given set partition describing the entanglement
 -- then apply a gate g acting on qubits i and j, give the new set partition that puts i and j into the same block
 -- these ones keep all the boolean flags True because the entire state is still pure
 -- when combining blocks the boolean flags get and'ed together
---changeEntanglementPattern :: GateData n -> EntanglementPattern n -> EntanglementPattern n
+changeEntanglementPattern :: GateData n -> EntanglementPattern n -> EntanglementPattern n
+changeEntanglementPattern gate pattern 
+                                        | arity2 gate==1 = pattern
+                                        | otherwise = modifyPattern (myinvolvedQubits gate) pattern
 -- fold for an entire circuit
---changeEntanglementPattern2 :: [GateData n] -> EntanglementPattern n -> EntanglementPattern n
--- make the block that contains index i into a mixed state
---measure :: InternalIndices n -> EntanglementPattern n -> EntanglementPattern n
+changeEntanglementPattern2 :: [GateData n] -> EntanglementPattern n -> EntanglementPattern n
+changeEntanglementPattern2 [] startingPattern = startingPattern
+changeEntanglementPattern2 (x:xs) startingPattern = changeEntanglementPattern2 xs (changeEntanglementPattern x startingPattern)
+-- make the block that contains index qubitMeasured into a mixed state
+measure :: InternalIndices Int n -> EntanglementPattern n -> EntanglementPattern n
+measure qubitMeasured pattern = EntanglementPattern {myPattern = [(fst y,snd y && not (qubitMeasured `elem` (fst y)))| y <- myPattern pattern]}
 
 {-
 -- puts a gate with same name in the 0th index of the corresponding error correction flag. This corresponds to the case when just adjoined ancillas
