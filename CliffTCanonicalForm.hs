@@ -1,4 +1,5 @@
 --https://arxiv.org/pdf/1803.05047.pdf
+-- see notation there for L,LPrime,M definitions
 
 data GateNames = H | S | T deriving (Read,Eq,Show)
 
