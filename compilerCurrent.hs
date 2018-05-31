@@ -244,6 +244,8 @@ changeEntanglementPattern2 :: [GateData n] -> EntanglementPattern n -> Entanglem
 changeEntanglementPattern2 [] startingPattern = startingPattern
 changeEntanglementPattern2 (x:xs) startingPattern = changeEntanglementPattern2 xs (changeEntanglementPattern x startingPattern)
 -- make the block that contains index qubitMeasured into a mixed state
+-- the eigenvalues are the probabilities of the measurement. So maybe measurement is wrong word.
+-- Did the operation but didn't record it so it is stuck with that leftover classical uncertainty.
 measure :: InternalIndices Int n -> EntanglementPattern n -> EntanglementPattern n
 measure qubitMeasured pattern = EntanglementPattern {myPattern = [(fst y,snd y && not (qubitMeasured `elem` (fst y)))| y <- myPattern pattern]}
 
