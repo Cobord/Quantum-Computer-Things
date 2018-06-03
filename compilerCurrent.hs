@@ -173,6 +173,7 @@ instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2))
 data Initialize = InitializeGate
 
 -- builds up the DAG from the beginning on, by putting edges in when the gate about to add has dependence on something before
+-- wrong
 newes :: a -> [a] -> [(a,a)]
 newes x dependence = [(v,x) | v <- dependence]
 myReplace :: Eq a => [a] -> a -> [a] -> [a]
