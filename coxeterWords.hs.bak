@@ -2,6 +2,7 @@ import qualified Data.Graph as Graph
 import Data.Maybe
 import qualified Data.List as DL
 
+--have not checked if compiles yet
 inversions :: [Int] -> [(Int,Int)]
 inversions pi = [(piI,piJ) |(i,piI) <- withIndex,(j,piJ) <- withIndex, i<j, piI > piJ] where withIndex = zip [1..] pi
 descents :: [Int] -> [Int]
