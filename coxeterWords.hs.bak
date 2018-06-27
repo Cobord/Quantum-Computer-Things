@@ -2,20 +2,27 @@ import qualified Data.Graph as Graph
 import Data.Maybe
 import qualified Data.List as DL
 
---have not checked if compiles yet
+-- inversions are where i<j but upon the permutation pi pi(i)>pi(j) for permutations of 1..n with the standard ordering
+-- 			here we output the pair (piI,piJ)
 inversions :: [Int] -> [(Int,Int)]
 inversions pi = [(piI,piJ) |(i,piI) <- withIndex,(j,piJ) <- withIndex, i<j, piI > piJ] where withIndex = zip [1..] pi
+-- descents are for i,i+1 but pi(i)>pi(i+1), here we output the associated i
 descents :: [Int] -> [Int]
 descents pi = [i | ((i,piI),(j,piJ)) <- paired, piI>piJ ] where paired = zip (zip [1..] pi) $ tail (zip [1..] pi)
+-- the major index adds up all the descents
 majorIndex :: [Int] -> Int
 majorIndex pi = sum (descents pi)
+-- the inv statistic counts how many inversions there are
 lengthSymmetricGroup :: [Int] -> Int
 lengthSymmetricGroup pi = length $ inversions pi
+-- maj and inv are equidistributed so for the same n, majStats n and invStats n will be the same as distributions
+-- 			they will be permuted from each other
 majStats :: Int -> [Int]
 majStats n = map majorIndex (DL.permutations [1..n])
 invStats :: Int -> [Int]
 invStats n = map lengthSymmetricGroup (DL.permutations [1..n])
 
+-- the example from the paper
 data CoxGens = S0 | S1 | S2 | S3 deriving (Show,Read,Eq,Enum,Bounded)
 
 myMij :: CoxGens -> CoxGens -> Maybe Int
