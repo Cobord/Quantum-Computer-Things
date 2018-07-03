@@ -184,6 +184,7 @@ inverseCircuit (x:xs) = (inverseCircuit xs) ++ (inverseGate x)
 --Example
 testinverseCircuit=inverseCircuit [GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 1,Lgcl 2]},GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 3,Lgcl 2]}]
 
+
 --when making the computation DAG will have multiple instances of the same gate, so putting an extra integer in to separate everything out so none equal
 newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
 instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2)) = (y1 `compare` y2)
