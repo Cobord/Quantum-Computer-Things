@@ -7,6 +7,7 @@
 
 import Data.Maybe
 import Data.List (tails)
+import Data.Graph
 
 data Nat = Z | S Nat deriving (Show)
 
@@ -48,6 +49,10 @@ instance Show (SNat n) where
   show SZ = "SZ"
   show (SS x) = "SS " ++ (show x)
 
+sNatToInt :: SNat n -> Int
+sNatToInt SZ = 0
+sNatToInt (SS x) = 1+(sNatToInt x)
+  
 -- make a vector of length n filled with same things
 myReplicate :: SNat n -> a -> Vector a n
 myReplicate SZ     _ = Nil
@@ -79,7 +84,14 @@ instance Eq (Ordinal n) where
 asInteger :: Ordinal n -> Int
 asInteger OZ = 0
 asInteger (OS x) = 1+ (asInteger x)
-  
+
+ordFromInteger :: SNat n -> Int -> Ordinal n
+ordFromInteger SZ _ = error "0<=x<0"
+ordFromInteger (SS myN) 0 = OZ
+ordFromInteger (SS myN) x
+                       | x<0 = OZ
+                       | otherwise = OS (ordFromInteger myN (x-1))
+
 instance Show (Ordinal n) where
   show x = show $ asInteger x
 
@@ -90,6 +102,24 @@ sIndex (OS n) (_ :- xs) = sIndex n xs
 -- the first is the outcomes, the second is the measurements
 -- n is the number of parties
 data Event n m d = Event{outcomes::(Vector (Ordinal d) n),measurements::Vector (Ordinal m) n}
+
+baseDExpansion0 :: Int -> Int -> [Int]
+baseDExpansion0 myD n
+                      | n<0 = []
+                      | myD<=1 = error "not allowed"
+                      | n==0 = [0]
+                      | otherwise = (n `mod` myD):(baseDExpansion0 myD (quot n myD))
+
+baseDExpansion :: SNat d -> Int -> [Ordinal d]
+baseDExpansion myD x = map (\x -> ordFromInteger myD x) (baseDExpansion0 (sNatToInt myD) x)
+
+baseDExpansionCapped :: SNat d -> SNat n -> Int -> Vector (Ordinal d) n
+baseDExpansionCapped SZ _ _ = error "not allowed"
+baseDExpansionCapped (SS myD) myN x = fromList myN (baseDExpansion (SS myD) x) OZ
+
+intToEvent :: SNat n -> SNat m -> SNat d -> Int -> Event n m d
+intToEvent myN myM myD x = Event{outcomes=baseDExpansionCapped myD myN (x `mod` z),measurements=baseDExpansionCapped myM myN (quot x z)} where
+                           z = (sNatToInt myD)^(sNatToInt myN)
 
 extractPair :: Event n m d -> (Vector (Ordinal d) n,Vector (Ordinal m) n)
 extractPair e1 = (outcomes e1,measurements e1)
@@ -107,6 +137,13 @@ pairs l = [(x,y) | (x:ys) <- tails l, y <- ys]
 
 locallyOrthogonal2 :: [Event n m d] -> Bool
 locallyOrthogonal2 xs = and [locallyOrthogonal fst snd| (fst,snd) <- pairs xs]
+
+orthogonalityGraph :: SNat n -> SNat m -> SNat d -> Graph
+orthogonalityGraph myN myM myD = let maxIndex = ((sNatToInt myM)*(sNatToInt myD))^(sNatToInt myN)-1
+                                     allEs = pairs $ map (\x -> (x,(intToEvent myN myM myD x))) [0..maxIndex]
+                                     esOneWay = [(fstIndex,sndIndex) | ((fstIndex,fst),(sndIndex,snd)) <- allEs, locallyOrthogonal fst snd]
+                                     es = esOneWay ++ [(snd,fst) | (fst,snd) <- esOneWay]
+                                     in buildG (0,maxIndex) es
 
 data ProbDist n m d = ProbDist{probFunc::(Event n m d) -> Double}
 
