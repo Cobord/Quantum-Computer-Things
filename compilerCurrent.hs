@@ -267,6 +267,18 @@ changeEntanglementPattern2 (x:xs) startingPattern = changeEntanglementPattern2 x
 measure :: InternalIndices Int n -> EntanglementPattern n -> EntanglementPattern n
 measure qubitMeasured pattern = EntanglementPattern {myPattern = [(fst y,snd y && not (qubitMeasured `elem` (fst y)))| y <- myPattern pattern]}
 
+--Sleator Winfurter construction of doubly controlled U=V^2
+-- for example Toffoli gate
+-- this doesn't work because CV2,CVDag2 are not valid gate names
+-- simple fix, just add those to the namespace
+--sleatorWinfurterExpand :: InternalIndices Int n -> InternalIndices Int n -> InternalIndices Int n -> [GateData n]
+--sleatorWinfurterExpand targetQubit controlOne controlTwo = [controlVPartOne,cnotPart,controlVPartTwo,cnotPart,controlVPartThree]
+--                                                where cnotPart=GateData{name=CNOT2,myinvolvedQubits=[controlOne,controlTwo]}
+--												      controlVPartOne=GateData{name=CV2,myinvolvedQubits=[controlTwo,targetQubit]}
+--													  controlVPartTwo=GateData{name=CVDag2,myinvolvedQubits=[controlTwo,targetQubit]}
+--													  controlVPartThree=GateData{name=CV2,myinvolvedQubits=[controlOne,targetQubit]}
+
+
 {-
 --Steane
 encodingCircuit1 :: InternalIndices Int n -> [GateData (S1 n)]
