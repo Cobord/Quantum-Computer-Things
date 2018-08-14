@@ -124,7 +124,7 @@ reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGat
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices2 xs)
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices2 xs)
 
-data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 deriving (Read, Show, Eq)
+data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 | Swap2 | Tof3 deriving (Read, Show, Eq)
 
 -- how many qubits does this kind of gate operate on
 arity::GateNames -> Int
@@ -135,6 +135,8 @@ arity Hadamard1 = 1
 arity QuarterPhase1 = 1
 arity SqrtSwap2 = 2
 arity CNOT2 = 2
+arity Swap2 = 2
+arity Tof3 = 3
 
 -- A gate is given as a name and a list of involved qubits
 data GateData n = GateData{name::GateNames, myinvolvedQubits::[InternalIndices Int n]} deriving (Eq,Show)
@@ -177,6 +179,9 @@ inverseGate GateData{name=Hadamard1,myinvolvedQubits=y} = [GateData{name=Hadamar
 inverseGate GateData{name=QuarterPhase1,myinvolvedQubits=y} = [GateData{name=QuarterPhase1,myinvolvedQubits=y},GateData{name=QuarterPhase1,myinvolvedQubits=y},GateData{name=QuarterPhase1,myinvolvedQubits=y}]
 inverseGate GateData{name=SqrtSwap2,myinvolvedQubits=y} = [GateData{name=SqrtSwap2,myinvolvedQubits=y},GateData{name=SqrtSwap2,myinvolvedQubits=y},GateData{name=SqrtSwap2,myinvolvedQubits=y}]
 inverseGate GateData{name=CNOT2,myinvolvedQubits=y} = [GateData{name=CNOT2,myinvolvedQubits=y}]
+inverseGate GateData{name=Swap2,myinvolvedQubits=y} = [GateData{name=Swap2,myinvolvedQubits=y}]
+inverseGate GateData{name=Tof3,myinvolvedQubits=y} = [GateData{name=Tof3,myinvolvedQubits=y}]
+
 inverseCircuit :: [GateData n] -> [GateData n]
 inverseCircuit [] = []
 inverseCircuit (x:xs) = (inverseCircuit xs) ++ (inverseGate x)
@@ -337,3 +342,18 @@ quantumFourierTransform N = GateData(name=Hadamard1,myinvolvedQubits=[Lgcl N-1])
 -- Grover's search takes the black boxed circuit and and integer m which should be O(\sqrt{N}) and produce the grovers Search algorithm circuit
 groversSearch :: [GateData None] -> Int -> [GateData None]
 -}
+
+-- Reversible circuit for 3-SAT
+
+-- a clause (i, bi, j, bj, k, bk) represents \pm x_i or \pm x_j or \pm x_k
+-- where if the corresponding b is True then use + sign
+-- otherwise (NOT x_j) for example
+data Clause = ( Int , Bool, Int , Bool, Int, Bool )
+data BooleanFormula = [Clause]
+
+notGate :: Int -> Bool -> [GateData None]
+notGate i True = [GateData{name=PauliX1,myinvolvedQubits=Lgcl i}]
+notGate i False = []
+
+--getCircLHelper :: Clause -> (Int,Int,Int) -> [GateData None]
+-- the second argument gives where to put the n+1'st bit, and the 2 ancillas
