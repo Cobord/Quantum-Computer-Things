@@ -1,0 +1,291 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry} 
+\geometry{letterpaper}   
+
+\usepackage{amsmath}
+\usepackage{amssymb,amsfonts,bbm,mathrsfs,stmaryrd}
+\usepackage{float}
+
+%%% Theorems and references %%%
+\usepackage[amsmath,thmmarks]{ntheorem}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\theoremstyle{change}
+
+\newtheorem{defn}[equation]{Definition}
+\newtheorem{definition}[equation]{Definition}
+\newtheorem{thm}[equation]{Theorem}
+\newtheorem{theorem}[equation]{Theorem}
+\newtheorem{prop}[equation]{Proposition}
+\newtheorem{proposition}[equation]{Proposition}
+\newtheorem{lemma}[equation]{Lemma}
+\newtheorem{cor}[equation]{Corollary}
+\newtheorem{conjecture}[equation]{Conjecture}
+\newtheorem{exercise}[equation]{Exercise}
+\newtheorem{example}[equation]{Example}
+
+\theorembodyfont{\upshape}
+\theoremsymbol{\ensuremath{\Diamond}}
+\newtheorem{eg}[equation]{Example}
+\newtheorem{remark}[equation]{Remark}
+
+\theoremstyle{nonumberplain}
+
+\theoremsymbol{\ensuremath{\Box}}
+\newtheorem{proof}{Proof}
+
+\qedsymbol{\ensuremath{\Box}}
+
+\creflabelformat{equation}{#2(#1)#3} 
+
+\crefname{equation}{equation}{equations}
+\crefname{eg}{example}{examples}
+\crefname{defn}{definition}{definitions}
+\crefname{prop}{proposition}{propositions}
+\crefname{thm}{Theorem}{Theorems}
+\crefname{lemma}{lemma}{lemmas}
+\crefname{cor}{corollary}{corollaries}
+\crefname{remark}{remark}{remarks}
+\crefname{section}{Section}{Sections}
+\crefname{subsection}{Section}{Sections}
+
+\crefformat{equation}{#2equation~(#1)#3} 
+\crefformat{eg}{#2example~#1#3} 
+\crefformat{defn}{#2definition~#1#3} 
+\crefformat{prop}{#2proposition~#1#3} 
+\crefformat{thm}{#2Theorem~#1#3} 
+\crefformat{lemma}{#2lemma~#1#3} 
+\crefformat{cor}{#2corollary~#1#3} 
+\crefformat{remark}{#2remark~#1#3} 
+\crefformat{section}{#2Section~#1#3} 
+\crefformat{subsection}{#2Section~#1#3} 
+
+\Crefformat{equation}{#2Equation~(#1)#3} 
+\Crefformat{eg}{#2Example~#1#3} 
+\Crefformat{defn}{#2Definition~#1#3} 
+\Crefformat{prop}{#2Proposition~#1#3} 
+\Crefformat{thm}{#2Theorem~#1#3} 
+\Crefformat{lemma}{#2Lemma~#1#3} 
+\Crefformat{cor}{#2Corollary~#1#3} 
+\Crefformat{remark}{#2Remark~#1#3} 
+\Crefformat{section}{#2Section~#1#3} 
+\Crefformat{subsection}{#2Section~#1#3} 
+
+
+\numberwithin{equation}{section}
+
+
+%%% Tikz stuff %%%
+
+\usepackage{rotating}
+\usepackage{tikz}
+\tikzset{dot/.style={circle,draw,fill,inner sep=1pt}}
+\usepackage{braids}
+\usetikzlibrary{chains,matrix,scopes,decorations,shapes,arrows}
+\usetikzlibrary{cd}
+
+\newcommand{\hexagon}[2]{
+\fill [blue] (-1/2+#1, .866+#2) circle (0.1);
+\fill [blue] (1/2+#1, .866+#2) circle (0.1);
+\fill [blue] (1+#1, 0+#2) circle (0.1);
+\fill [blue] (-1+#1, 0+#2) circle (0.1);
+\fill [blue] (-1/2+#1, -.866+#2) circle (0.1);
+\fill [blue] (1/2+#1, -.866+#2) circle (0.1);
+}
+
+%%% Letters, Symbols, Words %%%
+
+\newcommand\Aa{{\cal A}}
+\newcommand\Oo{{\cal O}}
+\newcommand\Uu{{\cal U}}
+\newcommand\NN{{\mathbb N}}
+\newcommand\RR{{\mathbb R}}
+\newcommand\Ddd{\mathscr{D}}
+\renewcommand{\d}{{\,\rm d}}
+\newcommand\T{{\rm T}}
+
+\newcommand\mono{\hookrightarrow}
+\newcommand\sminus{\smallsetminus}
+\newcommand\st{{\textrm{ s.t.\ }}}
+\newcommand\ket[1]{\mid #1 \rangle}
+\newcommand\bra[1]{\langle #1 \mid}
+\newcommand\setof[1]{\{ #1 \}}
+\newcommand\lt{<}
+\newcommand\abs[1]{ \mid #1 \mid }
+\newcommand\pfrac[2]{ \frac{ \partial #1}{\partial #2}}
+
+\DeclareMathOperator{\Aut}{Aut}
+\DeclareMathOperator{\dVol}{dVol}
+\DeclareMathOperator{\ev}{ev}
+\DeclareMathOperator{\fiber}{fiber}
+\DeclareMathOperator{\GL}{GL}
+\DeclareMathOperator{\id}{id}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\tr}{tr}
+
+\title{Gate Identification}
+\author{Ammar Husain}
+
+\begin{document}
+\maketitle
+
+\section{Josephson Oscillator}
+
+%%\url{https://copilot.caltech.edu/documents/261-girvin_notes_superconducting_qubits_and_circuits_2011.pdf}
+
+Recall a single qubit constructed from a Josephson junction. The qubits are the $\ket{0}$ and $\ket{1}$ states of the number operator. The gates are then constructed by adjusting $E_J$ and $E_C$.
+
+\begin{eqnarray*}
+H_T &=& \frac{-1}{2} E_J \sum_m \ket{m} \bra{m+1} + \ket{m+1}\bra{m}\\
+\ket{\phi} &=& \sum e^{im\phi} \ket{m}\\
+H_T \ket{\phi} &=& -E_J \cos \phi \ket{\phi}\\
+v_{group} ( \phi ) &=& \frac{1}{\hbar} \frac{\partial}{\partial \phi} ( - E_J \cos \phi )\\
+I ( \phi ) &=& \frac{2e}{\hbar} E_J \sin \phi\\
+\end{eqnarray*}
+
+This gives a maximal coherent (dissipationless) current $\frac{2e}{\hbar} E_J$. Any more current will cause the voltage to rise above the $2\Delta$ gap and break the approximation that we only need the ground states determined by the number of pairs only.
+
+Now with a Coulomb term as well for this little capacitor
+
+\begin{eqnarray*}
+H &=& 4 E_C ( n - n_g)^2 - E_J \cos \phi\\
+\end{eqnarray*}
+
+\begin{definition}[Mathieu Equation]
+\begin{eqnarray*}
+\big[ \frac{d^2}{dx^2} + ( a - 2 q \cos (2x) ) \big] y &=& 0\\
+\end{eqnarray*}
+
+For fixed $a$ and $q$, the solution can be expressed as $F(a,q,x)=e^{i \mu x} P(a,q,x)$ with $P$ $\pi$-periodic. 
+
+\end{definition}
+
+\begin{definition}[Hill Operator]
+
+More generally, let $q(x)$ be a periodic real function instead of just the $a - 2 q_0 \cos 2x - \lambda$ as above.
+
+\begin{eqnarray*}
+H y &=& - y'' + q(x) y\\
+H y &=& \lambda y\\
+\end{eqnarray*}
+
+\end{definition}
+
+\begin{definition}[Mathieu cosine and sine]
+The solution with value $1$ at $x=0$ and derivative 0 or vice versa.
+
+These are real valued solutions.
+
+\begin{eqnarray*}
+C(a,q,x) &=& \frac{F(a,q,x)+F(a,q,-x)}{2 F(a,q,0)}\\
+S(a,q,x) &=& \frac{F(a,q,x)-F(a,q,-x)}{2 F^{'} (a,q,0) }\\
+\end{eqnarray*}
+
+If $q=0$ then these are $\cos \sqrt{a} x$ and $\frac{\sin \sqrt{a} x}{\sqrt{a}}$ respectively. In general they are aperiodic.
+
+For a given value of $q$ there are countably many $a$ that give periodic solutions. For example, if $q=0$, then $a = (n)^2$ with $n \in \mathbb{Z}$ in order to achieve $2 \pi$ periodicity.
+
+\end{definition}
+
+\begin{eqnarray*}
+H &=& -4 E_C \frac{\partial^2}{\partial \phi^2} + 8E_C n_g i \frac{\partial}{\partial \phi} + 4E_C n_g^2 - E_J \cos \phi\\
+H_2 &=& \frac{-H}{4 E_C} + n_g^2 = \frac{\partial^2}{\partial \phi^2} - 2 n_g i \frac{\partial}{\partial \phi} + \frac{E_J}{4E_C}\cos \phi\\
+H_2 \psi = \lambda_{H_2} \psi  &\implies& -4 E_C (\lambda_{H_2} -n_g^2) = \lambda_{H}\\
+\end{eqnarray*}
+
+Let $\phi = 2x$
+
+\begin{eqnarray*}
+\frac{1}{4} \frac{\partial^2 \psi }{\partial x^2} - n_g i \frac{\partial \psi}{\partial x} + \frac{E_J}{4E_C}\cos (2x) \psi &=& \lambda \psi\\
+\frac{\partial^2 \psi }{\partial x^2} - 4 n_g i \frac{\partial \psi}{\partial x} + (-4\lambda+\frac{E_J}{E_C}\cos (2x)) \psi &=& 0\\
+\end{eqnarray*}
+
+If $n_g=0$ then we get $\psi = a_S C(-4 \lambda , \frac{-E_J}{2E_C} , \frac{\phi}{2} ) + a_A S(-4 \lambda , \frac{-E_J}{2E_C} , \frac{\phi}{2} )$
+
+Now keep $n_g$, but define $w$
+
+\begin{eqnarray*}
+w &=& \psi e^{-2 i n_g x} \\
+w &=& C_1 C( - 4 \lambda + 4 n_g^2 , - \frac{E_J}{2E_C} , x ) + C_2 S( - 4 \lambda + 4 n_g^2 , - \frac{E_J}{2E_C} , x ) \\
+\psi &=& e^{2 i n_g x} w\\
+\end{eqnarray*}
+
+\begin{proof}
+\begin{eqnarray*}
+\frac{\partial \psi}{\partial x} &=& \frac{\partial w}{\partial x} e^{2 i n_g x} + (2 i n_g ) w e^{2 i n_g x}\\
+\frac{\partial^2 \psi}{\partial x^2} &=& \frac{\partial^2 w}{\partial x^2} e^{2 i n_g x} + 2i n_g \frac{\partial w}{\partial x} e^{2 i n_g x} + 2 i n_g \frac{\partial w}{\partial x} e^{2 i n_g x} - 4 n_g^2 w e^{2 i n_g x}\\ 
+\frac{\partial^2 \psi}{\partial x^2} - 4 n_g i \frac{\partial \psi}{\partial x} + (-4 \lambda + \frac{E_J}{E_C} \cos 2x ) \psi &=& \frac{\partial^2 w}{\partial x^2} e^{2 in_g x} + 4 n_g^2 w e^{2 i n_g x} - ( 4 \lambda + \frac{E_J}{E_C} \cos 2x ) w e^{2i n_g x}\\
+\frac{\partial^2 w}{\partial x^2} + (-4 \lambda + 4 n_g^2 - 2 \frac{E_J}{2E_C} \cos 2x ) w &=& 0\\
+w &=& C_1 C(-4 \lambda + 4 n_g^2 , \frac{E_J}{2 E_C} , x ) + C_2 S(-4 \lambda + 4 n_g^2 , \frac{E_J}{2 E_C} , x )\\
+\psi &=& C_1 e^{i n_g \phi} C(-4 \lambda + 4 n_g^2 , \frac{E_J}{2 E_C} , \frac{\phi}{2} ) + C_2 e^{ i n_g \phi} S(-4 \lambda + 4 n_g^2 , \frac{E_J}{2 E_C} , \frac{\phi}{2} )\\
+\end{eqnarray*}
+
+\end{proof}
+
+We want $\psi$ to be periodic under $\phi \to \phi + 2 \pi$ so $x \to x+ \pi$. So $w$ must go to $e^{-2 i n_g \pi}w $ upon the same shift. This gives countably many allowed values for $-4 \lambda + 4 n_g^2$ so countably many values for the energy $\lambda_H$. That is the spectrum as a function of $E_{C,J}$ and $n_g$.
+
+Let's say $C_1=1$ and $C_2 = 0$. In Mathematica this is given by MathieuCharacteristicA[$-2 n_g+k$,$-E_J/2E_C$]. Call it $MCA$ for short. That is under $x \to x + 2 \pi$ pick up a $e^{i r 2 \pi}$.
+
+\begin{eqnarray*}
+\lambda &=& n_g^2 -\frac{1}{4} MCA ( k - 2 n_g, -\frac{E_J}{2E_C} )\\
+\end{eqnarray*}
+
+Similarly for the odd functions we have 
+
+\begin{eqnarray*}
+\lambda &=& n_g^2 -\frac{1}{4} MCB ( k - 2 n_g, -\frac{E_J}{2E_C} )\\
+\end{eqnarray*}
+
+Together the spectrum is the collection of all
+
+\begin{eqnarray*}
+\lambda_H &=& E_C MCA ( k -2  n_g, -\frac{E_J}{2E_C} )\\
+\lambda_H &=&  E_C MCB ( k -2  n_g, -\frac{E_J}{2E_C} )\\
+\end{eqnarray*}
+
+\section{More general 1 qubit}
+
+Notice that if we define $y = e^{i \phi}$, $\cos \phi$ has degrees $\pm 1$ in $y$. In addition the Coulomb term is quadratic in $n=i \hbar \frac{d}{d\phi}$. Therefore, for unknown dynamics $H$ let us guess a form
+
+\begin{eqnarray*}
+H &=& A_{0,0} + A_{0,1} n + A_{1,0} e^{i \phi} + A_{-1,0} e^{- i \phi} \\
+&+& A_{0,2} n^2 + A_{1,1} e^{i \phi} n + A_{-1,1} e^{-i\phi} n \\
+&+& A_{2,0} e^{2 i \phi} + A_{-2,0} e^{-2 i \phi}\\
+&+& h.c.
+\end{eqnarray*}
+
+which has all the $A_{m,n}$ such that $\abs{m} + n \leq 2$. Generally let the maximal degree be $D$.
+
+\section{Multiple qubits}
+
+Let $n_1 \cdots n_k$ be the number operators and $\phi_i \cdots \phi_k$ corresponding phases. Again maximal degree $D$.
+
+\begin{eqnarray*}
+H &=& \sum A_{a_1,b_1,a_2,b_2 \cdots a_k , b_k} \prod_i e^{i a_i \phi_i} n_i^{b_i} + h.c.\\
+\sum_i \abs{a}_i + b_i &\leq& D\\
+\end{eqnarray*}
+
+The total number of parameters here is upper bounded by $2^{k} \sum_{n \leq D} p(n,2k)$ where the $2^k$ takes care of choosing the signs on the $a_i$ and the $p(n)$ are the number of compositions of $D$ into $2k$ natural numbers. If $D$ is too big, this is unmanageable, but for smaller $D$ it is more reasonable.
+
+See HamiltonianLearning repository for the corresponding classical problem with the same kind of constraint being used to make the inverse dynamic problem solvable.
+
+\begin{eqnarray*}
+\langle H \rangle &=& \sum \langle A_{a_1,b_1,a_2,b_2 \cdots a_k , b_k} \prod_i e^{i a_i \phi_i} n_i^{b_i} + h.c. \rangle\\
+&=& \sum Re(A_{a_1,b_1,a_2,b_2 \cdots a_k , b_k}) \langle \prod_i e^{i a_i \phi_i} n_i^{b_i} + h.c. \rangle\\
+&+& \sum Im(A_{a_1,b_1,a_2,b_2 \cdots a_k , b_k}) \langle i( \prod_i e^{i a_i \phi_i} n_i^{b_i} - h.c.) \rangle\\
+\end{eqnarray*}
+
+If we have the statistics on those expectation values, then we get a linear algebra problem over the reals for the unknown $Re(A)$ and $Im(A)$. WLOG we have demanded that $\langle H \rangle = 0$ by adjusting $A_{0 \cdots 0}$. In order to get these statistics we must do repeated observations where the state was initialized the same and then allowed to evolve for some time.
+
+\subsection{Bootstrapping}
+
+We first want a good guess for the Hamiltonian. This is done by identifying the case from the more general 1 qubit. Call that $H_{i}$ for it only applied to qubit $i$. The initial guess for $k$ qubits is then
+
+\begin{eqnarray*}
+H &=& \sum_{j=1}^k H_i
+\end{eqnarray*}
+
+$H_i$ have only $A_{0 \cdots 0, a_i , b_i, 0 \cdots 0}$ nonzero. Then do similar for $H_{ij}$ to focus on the case of $2$-qubits in isolation from the other $k-2$. $2$-local Hamiltonians are typical so one might stop there.
+
+\end{document}
