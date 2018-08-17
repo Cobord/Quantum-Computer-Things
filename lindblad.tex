@@ -205,6 +205,53 @@ where $\rho (t) = \phi_t \rho (0)$ is the solution to the ordinary differential 
 
 \url{https://books.google.com/books?id=_9UBCAAAQBAJ&pg=PA88&lpg=PA88&dq=lindblad+hochschild&source=bl&ots=HI7IaXfgEe&sig=kOu64rDabBZnV024_gnlgv0pcl4&hl=en&sa=X&ved=0ahUKEwictbSF7MTXAhUKjlQKHfiRBWUQ6AEILTAB#v=onepage&q=lindblad\%20hochschild&f=false}
 
+\begin{theorem}
+Let $\alpha$ be a completely positive unital map $\mathcal{N} \to \mathcal{M}$ and $\rho$ a faithful normal state on $\mathcal{M}$. Then there exists a unique $\mathcal{N} - \mathcal{M}$ bimodule $\mathcal{H}_\alpha$ defined by having a cyclic vector $\xi_\alpha$ and
+
+\begin{eqnarray*}
+\bra{\xi_\alpha} \ket{ \ell_\alpha (n) \xi_\alpha} &=& \rho ( \alpha (n))\\
+\bra{\xi_\alpha} \ket{ r_\alpha (m) \xi_\alpha} &=& \rho ( m)\\
+\end{eqnarray*}
+
+to define the left and right actions.
+
+\end{theorem}
+
+\begin{proof}
+\url{https://indico.oist.jp/indico/event/5/picture/116.pdf}
+\end{proof}
+
+\begin{theorem}
+The entropy of this channel is $\log Ind(\mathcal{H}_\alpha)$ where taking Vaughan Jones' index.
+\end{theorem}
+
+\begin{theorem}[Holevo]
+How this is interpreted if assume finite dimensions.
+\end{theorem}
+
+\begin{theorem}[Choi]
+\end{theorem}
+
+\begin{cor}[Lindblad]
+\end{cor}
+
+As the channel changes, the bimodule changes. That is why this goes with the Hochschild section. Hochschild cohomology is about deformations of algebras and bimodules.
+
+\begin{definition}[Modular Operator]
+Let $\mathcal{H}$ be a $\mathcal{N} - \mathcal{M}$ bimodule with finite Jones' index. Give faithful normal states $\rho_1$ and $\rho_2$ on each side.
+
+\begin{eqnarray*}
+\Delta_\mathcal{H} (\rho_1 \mid \rho_2 ) &\equiv& \frac{d (\rho_1 \cdot \ell^{-1} )}{d (\rho_2 \cdot r^{-1} \cdot \epsilon)}
+\end{eqnarray*}
+
+\end{definition}
+
+\begin{proof}
+\url{https://indico.oist.jp/indico/event/5/picture/116.pdf}
+\end{proof}
+
+Each channel or basic operation gives a bimodule, a program then tensors all these together in some order. Further fitting with the philosophy espoused in Coxeter compiler and HamiltonianLearning (where Lagrangian correspondences replace bimodules because classical).
+
 \section{Quantum Chemistry}
 
 \url{https://dash.harvard.edu/bitstream/handle/1/4646014/0807.0929v2.pdf?sequence=1}
