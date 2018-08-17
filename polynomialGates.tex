@@ -123,6 +123,7 @@
 \DeclareMathOperator{\id}{id}
 \DeclareMathOperator{\sign}{sign}
 \DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\Tr}{tr}
 
 \title{Gate Identification}
 \author{Ammar Husain}
@@ -276,7 +277,7 @@ See HamiltonianLearning repository for the corresponding classical problem with 
 &+& \sum Im(A_{a_1,b_1,a_2,b_2 \cdots a_k , b_k}) \langle i( \prod_i e^{i a_i \phi_i} n_i^{b_i} - h.c.) \rangle\\
 \end{eqnarray*}
 
-If we have the statistics on those expectation values, then we get a linear algebra problem over the reals for the unknown $Re(A)$ and $Im(A)$. WLOG we have demanded that $\langle H \rangle = 0$ by adjusting $A_{0 \cdots 0}$. In order to get these statistics we must do repeated observations where the state was initialized the same and then allowed to evolve for some time.
+If we have the statistics on those expectation values, then we get a linear algebra problem over the reals for the unknown $Re(A)$ and $Im(A)$. WLOG we have demanded that $\langle H \rangle = 0$ by adjusting $A_{0 \cdots 0}$. In order to get these statistics we must do repeated observations where the state was initialized the same and then allowed to evolve for some time. For each of these $\rho(t=0)$ and $t$ you get one row of the matrix. Do this with many different initial conditions and evolution times and you get more rows. We get the problem of finding the null space of a rectangular matrix. Because of errors, instead of taking the null space just do an SVD and impose a cutoff on the absolute value of singular values that should be considered. That provides a fuzzy version of the null space to take into account potential errors. 
 
 \subsection{Bootstrapping}
 
@@ -286,6 +287,6 @@ We first want a good guess for the Hamiltonian. This is done by identifying the 
 H &=& \sum_{j=1}^k H_i
 \end{eqnarray*}
 
-$H_i$ have only $A_{0 \cdots 0, a_i , b_i, 0 \cdots 0}$ nonzero. Then do similar for $H_{ij}$ to focus on the case of $2$-qubits in isolation from the other $k-2$. $2$-local Hamiltonians are typical so one might stop there.
+$H_i$ have only $A_{0 \cdots 0, a_i , b_i, 0 \cdots 0}$ nonzero. Then do similar for $H_{ij}$ to focus on the case of $2$-qubits in isolation from the other $k-2$. $2$-local Hamiltonians are typical so one might stop there. These give smaller matrices for which we seek the null space. However, because of the approximation used again just use the SVD decomposition and take the vectors correpsonding to the smallest singular values.
 
 \end{document}
