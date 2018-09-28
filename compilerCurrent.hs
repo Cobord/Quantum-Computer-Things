@@ -201,7 +201,7 @@ simplifyCircuit (x:xs)
 
 simplifyCircuit2 :: [GateData n] -> [GateData n]
 simplifyCircuit2 x
-                   | y==x = y
+                   | (length y)==(length x) = y
                    | otherwise = simplifyCircuit2 y
                    where y=simplifyCircuit x
 

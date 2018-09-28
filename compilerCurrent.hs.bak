@@ -205,6 +205,8 @@ simplifyCircuit2 x
                    | otherwise = simplifyCircuit2 y
                    where y=simplifyCircuit x
 
+shouldBeEmpty = simplifyCircuit2 (circuitToInvert++testinverseCircuit)
+
 --when making the computation DAG will have multiple instances of the same gate, so putting an extra integer in to separate everything out so none equal
 newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
 instance Ord (GateData2 n) where (GateData2 (_,y1)) `compare` (GateData2 (_,y2)) = (y1 `compare` y2)
