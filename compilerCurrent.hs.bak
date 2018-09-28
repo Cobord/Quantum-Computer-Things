@@ -9,6 +9,7 @@ import qualified Math.Combinat.Partitions.Set as SetPart
 import qualified Data.Set as Set
 import qualified Math.Combinatorics.Digraph as DG
 import qualified Control.Exception as E
+import Data.Maybe
 
 data Nat = Z | S Nat deriving (Show)
 
@@ -187,7 +188,22 @@ inverseCircuit [] = []
 inverseCircuit (x:xs) = (inverseCircuit xs) ++ (inverseGate x)
 
 --Example
-testinverseCircuit=inverseCircuit [GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 1,Lgcl 2]},GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 3,Lgcl 2]}]
+circuitToInvert=[GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 1,Lgcl 2]},GateData{name=SqrtSwap2,myinvolvedQubits=[Lgcl 3,Lgcl 2]}]
+testinverseCircuit=inverseCircuit circuitToInvert
+
+--cancel inverses in the circuit
+simplifyCircuit :: [GateData n] -> [GateData n]
+simplifyCircuit [] = []
+simplifyCircuit (x:xs)
+                       | isNothing ys = x:(simplifyCircuit xs)
+                       | otherwise = fromJust ys
+                       where ys=L.stripPrefix (inverseGate x) xs
+
+simplifyCircuit2 :: [GateData n] -> [GateData n]
+simplifyCircuit2 x
+                   | y==x = y
+                   | otherwise = simplifyCircuit2 y
+                   where y=simplifyCircuit x
 
 --when making the computation DAG will have multiple instances of the same gate, so putting an extra integer in to separate everything out so none equal
 newtype GateData2 n = GateData2 { myData :: (GateData n , Int)} deriving (Eq,Show)
@@ -348,13 +364,12 @@ groversSearch :: [GateData None] -> Int -> [GateData None]
 -- a clause (i, bi, j, bj, k, bk) represents \pm x_i or \pm x_j or \pm x_k
 -- where if the corresponding b is True then use + sign
 -- otherwise (NOT x_j) for example
-data Clause = ( Int , Bool, Int , Bool, Int, Bool )
-data BooleanFormula = [Clause]
+--data Clause = ( Int , Bool, Int , Bool, Int, Bool)
+--data BooleanFormula = [Clause]
 
 notGate :: Int -> Bool -> [GateData None]
-notGate i True = [GateData{name=PauliX1,myinvolvedQubits=Lgcl i}]
+notGate i True = [GateData{name=PauliX1,myinvolvedQubits=[Lgcl i]}]
 notGate i False = []
 
 --getCircLHelper :: Clause -> (Int,Int,Int) -> [GateData None]
 -- the second argument gives where to put the n+1'st bit, and the 2 ancillas
---getCircL :: BooleanFormula -> [GateData None]
