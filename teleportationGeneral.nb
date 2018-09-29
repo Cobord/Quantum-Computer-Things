@@ -1,0 +1,325 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      9824,        316]
+NotebookOptionsPosition[      9446,        298]
+NotebookOutlinePosition[      9812,        314]
+CellTagsIndexPosition[      9769,        311]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"ClearAll", "[", "\"\<Global`*\>\"", "]"}]], "Input",
+ CellChangeTimes->{{3.7471689582988944`*^9, 3.7471689713052406`*^9}, 
+   3.7471690234981413`*^9}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"myN", "=", "3"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"MakeStates", "[", "n_", "]"}], ":=", 
+   RowBox[{"For", "[", 
+    RowBox[{
+     RowBox[{"i", "=", "0"}], ",", 
+     RowBox[{"i", "<", "n"}], ",", 
+     RowBox[{"i", "++"}], ",", "\[IndentingNewLine]", 
+     RowBox[{
+      SubscriptBox["state", "i"], "=", 
+      RowBox[{
+       RowBox[{"IdentityMatrix", "[", "n", "]"}], "[", 
+       RowBox[{"[", 
+        RowBox[{"i", "+", "1"}], "]"}], "]"}]}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"entangledState", "[", "n_", "]"}], ":=", 
+   RowBox[{
+    RowBox[{"Sum", "[", 
+     RowBox[{
+      RowBox[{"KroneckerProduct", "[", 
+       RowBox[{
+        SubscriptBox["state", "i"], ",", 
+        SubscriptBox["state", "i"]}], "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", "0", ",", 
+        RowBox[{"n", "-", "1"}]}], "}"}]}], "]"}], "/", 
+    RowBox[{"Sqrt", "[", "n", "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"COpGate", "[", 
+   RowBox[{"n_", ",", "f_"}], "]"}], ":=", 
+  RowBox[{"Sum", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"ConjugateTranspose", "[", 
+      RowBox[{"{", 
+       RowBox[{"Flatten", "[", 
+        RowBox[{"KroneckerProduct", "[", 
+         RowBox[{
+          SubscriptBox["state", "i"], ",", 
+          SubscriptBox["state", 
+           RowBox[{"Mod", "[", 
+            RowBox[{
+             RowBox[{"f", "[", 
+              RowBox[{"i", ",", "j"}], "]"}], ",", "n"}], "]"}]]}], "]"}], 
+        "]"}], "}"}], "]"}], ".", 
+     RowBox[{"{", 
+      RowBox[{"Flatten", "[", 
+       RowBox[{"KroneckerProduct", "[", 
+        RowBox[{
+         SubscriptBox["state", "i"], ",", 
+         SubscriptBox["state", "j"]}], "]"}], "]"}], "}"}]}], ",", 
+    RowBox[{"{", 
+     RowBox[{"i", ",", "0", ",", 
+      RowBox[{"n", "-", "1"}]}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"j", ",", "0", ",", 
+      RowBox[{"n", "-", "1"}]}], "}"}]}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"CSumGate", "[", "n_", "]"}], ":=", 
+  RowBox[{"COpGate", "[", 
+   RowBox[{"n", ",", "Plus"}], "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"MyFourierMatrix", "[", "n_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"w", "^", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"i", "-", "1"}], ")"}], "*", 
+        RowBox[{"(", 
+         RowBox[{"j", "-", "1"}], ")"}]}], ")"}]}], ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", "n"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"j", ",", "n"}], "}"}]}], "]"}], "/.", 
+   RowBox[{"{", 
+    RowBox[{"w", "\[Rule]", 
+     RowBox[{"Exp", "[", 
+      RowBox[{"2", "*", "Pi", "*", 
+       RowBox[{"I", "/", "n"}]}], "]"}]}], "}"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"MakeStates", "[", "myN", "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"startingState", "[", "n_", "]"}], ":=", 
+   RowBox[{"Flatten", "[", 
+    RowBox[{"KroneckerProduct", "[", 
+     RowBox[{
+      RowBox[{"Sum", "[", 
+       RowBox[{
+        RowBox[{
+         SubscriptBox["a", "i"], "*", 
+         SubscriptBox["state", "i"]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"i", ",", "0", ",", 
+          RowBox[{"n", "-", "1"}]}], "}"}]}], "]"}], ",", 
+      RowBox[{"entangledState", "[", "n", "]"}]}], "]"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"KroneckerProduct", "[", 
+   RowBox[{
+    RowBox[{"MyFourierMatrix", "[", "myN", "]"}], ",", 
+    RowBox[{"IdentityMatrix", "[", 
+     RowBox[{"myN", "*", "myN"}], "]"}]}], "]"}], ".", 
+  RowBox[{"KroneckerProduct", "[", 
+   RowBox[{
+    RowBox[{"CSumGate", "[", "myN", "]"}], ",", 
+    RowBox[{"IdentityMatrix", "[", "myN", "]"}]}], "]"}], ".", 
+  RowBox[{"startingState", "[", "myN", "]"}]}]}], "Input",
+ CellChangeTimes->{{3.7471655521423545`*^9, 3.747165655795704*^9}, {
+   3.7471663279682164`*^9, 3.7471665243719883`*^9}, {3.747166882232698*^9, 
+   3.7471669904580536`*^9}, {3.747167035327084*^9, 3.7471670358055706`*^9}, {
+   3.7471672276840525`*^9, 3.747167352524249*^9}, {3.7471680172384586`*^9, 
+   3.747168034029035*^9}, {3.7471687069955254`*^9, 3.747168865890637*^9}, {
+   3.7471689375248833`*^9, 3.747168953851299*^9}, {3.7471690741243763`*^9, 
+   3.747169093473423*^9}, {3.7471691383327703`*^9, 3.747169196061037*^9}, {
+   3.747169301943907*^9, 3.7471695206479225`*^9}, 3.747169565594822*^9, {
+   3.7471698599924765`*^9, 3.7471699698288546`*^9}, {3.747170024004982*^9, 
+   3.7471700472383404`*^9}, {3.74717028403152*^9, 3.7471702860380564`*^9}, {
+   3.747170354514614*^9, 3.747170385060105*^9}, {3.7471704466995745`*^9, 
+   3.7471704602107477`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "2"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "1"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "1"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "2"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "2"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "1"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      FractionBox[
+       RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]], " ", 
+     SubscriptBox["a", "2"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    RowBox[{
+     SuperscriptBox["\[ExponentialE]", 
+      RowBox[{"-", 
+       FractionBox[
+        RowBox[{"2", " ", "\[ImaginaryI]", " ", "\[Pi]"}], "3"]}]], " ", 
+     SubscriptBox["a", "1"]}], 
+    SqrtBox["3"]], ",", 
+   FractionBox[
+    SubscriptBox["a", "0"], 
+    SqrtBox["3"]]}], "}"}]], "Output",
+ CellChangeTimes->{{3.7471699325329*^9, 3.747169970966625*^9}, 
+   3.7471700497770977`*^9, 3.747170387335857*^9, 3.747170469018862*^9}]
+}, Open  ]]
+},
+WindowSize->{707, 504},
+WindowMargins->{{246, Automatic}, {26, Automatic}},
+ShowSelection->True,
+FrontEndVersion->"9.0 for Microsoft Windows (64-bit) (January 25, 2013)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 174, 3, 31, "Input"],
+Cell[CellGroupData[{
+Cell[756, 27, 4696, 127, 392, "Input"],
+Cell[5455, 156, 3975, 139, 212, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
