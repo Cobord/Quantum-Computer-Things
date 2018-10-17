@@ -54,5 +54,5 @@ readProgramHelper :: Either ParseError [[String]] -> Either ParseError [[(Instru
 readProgramHelper (Left x) = (Left x)
 readProgramHelper (Right y) = Right (fmap (fmap toInstr) y)
 
-readProgram :: String -> Either ParseError [[InstructionSet]]
+readProgram :: String -> Either ParseError [[(InstructionSet,[Int])]]
 readProgram input = readProgramHelper $ parseCSV input
