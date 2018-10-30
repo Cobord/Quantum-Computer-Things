@@ -56,3 +56,8 @@ readProgramHelper (Right y) = Right (fmap (fmap toInstr) y)
 
 readProgram :: String -> Either ParseError [[(InstructionSet,[Int])]]
 readProgram input = readProgramHelper $ parseCSV input
+
+--Example
+--readProgram "X1,Y2,H3,SWAP12\n"
+-- will return Right [[(PauliX1,[1]),(PauliY1,[2]),(Hadamard1,[3]),(Swap2,[1,2])]]
+-- there is a single line of the program so of form [[]] instead of [[],[]] which it would if there were multiple lines with multiple \n
