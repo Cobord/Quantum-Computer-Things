@@ -14,3 +14,7 @@ cheegerAB graph aSet bSet = (fromIntegral $ length (connectingEdges graph aSet b
 -- B is the complement of A in actual computation of Cheeger constant
 cheegerA :: G.Graph -> S.Set G.Vertex -> Rational
 cheegerA graph aSet = cheegerAB graph aSet (S.difference allVertices aSet) where allVertices=foldr S.insert S.empty (G.vertices graph)
+
+--Example
+--my_graph=buildG (1,4) [(1,2),(2,1),(2,3),(3,2),(3,1),(1,3),(4,2),(2,4)]
+--cheegerA my_graph (fromList [1,2,3])
