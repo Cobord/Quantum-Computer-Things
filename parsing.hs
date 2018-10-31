@@ -61,3 +61,8 @@ readProgram input = readProgramHelper $ parseCSV input
 --readProgram "X1,Y2,H3,SWAP12\n"
 -- will return Right [[(PauliX1,[1]),(PauliY1,[2]),(Hadamard1,[3]),(Swap2,[1,2])]]
 -- there is a single line of the program so of form [[]] instead of [[],[]] which it would if there were multiple lines with multiple \n
+
+--TODO apply IO in order to get the string from a file instead of an argument to the function readProgram
+--TODO this program assumes there are fewer than 10 logical qubits so that 10 is interpreted as qubits 1 and 0 instead of qubit 10
+--     fixing this will entail formatting the input differently. Maybe use something like H3,SWAP10;2 so swaps 10 and 2.
+--     comma is already reserved to separate differnt gates, need another separator for qubit indices
