@@ -72,6 +72,7 @@ writeProgramHelper (SqrtSwap2,onDigits) = "SQRTSWAP"++(writeProgramHelper2 onDig
 writeProgramHelper (CNOT2,onDigits) = "CNOT"++(writeProgramHelper2 onDigits)
 writeProgramHelper (Swap2,onDigits) = "SWAP"++(writeProgramHelper2 onDigits)
 writeProgramHelper (Tof3,onDigits) = "TOF"++(writeProgramHelper2 onDigits)
+writeProgramHelper (NA,_) = "NA"
 
 writeProgram :: [(InstructionSet,[Int])] -> String
 writeProgram [] = "\n"
