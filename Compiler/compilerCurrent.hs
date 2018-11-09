@@ -75,7 +75,6 @@ data InternalIndices a n where
 deriving instance Eq a => Eq (InternalIndices a n)
 
 toList2 :: InternalIndices a n -> [a]
---toList2 Nil2 = []
 toList2 (Lgcl x) = [x]
 toList2 (Int1 x xs) = x : toList2 xs
 toList2 (Int2 x xs) = x : toList2 xs
