@@ -116,7 +116,7 @@ instance FiniteGroup DihedralGroup5 where
     mult a b = DihedralGroup5 {rotationPrefix=(plusMinus (rotationPrefix a) (rotationPrefix b) (flipped a)),flipped = (xor (flipped a) (flipped b))}
     inv a = invertPlusMinus (rotationPrefix a) (flipped a)
 
-data (CyclicGroup n) = CyclicGroup{underlyingVal::Int,myN::SNat n}
+data (CyclicGroup n) = CyclicGroup{underlyingVal::Integer,myN::SNat n}
 
 instance Eq (CyclicGroup n) where
     x==y = ((underlyingVal x) - (underlyingVal y) `mod` (numericVal (myN x)))==0

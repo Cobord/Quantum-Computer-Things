@@ -8,14 +8,14 @@ import MyGroups
 
 data ObjectSet = Slot1 | Slot2 deriving (Eq,Show,Read)
 
-class (Eq a) => FiniteGroupoid2 a where
+class (Eq a) => FiniteGroupoid a where
     groupoidmult :: a -> a -> Maybe a
     groupoidinv :: a -> a
     identityMorphisms :: ObjectSet -> a
     sourceObject :: a -> ObjectSet
     targetObject :: a -> ObjectSet
 
-class (FiniteGroupoid2 a) => FiniteGroudit2 a where
+class (FiniteGroupoid a) => FiniteGroudit a where
     --Pair of balancers sigma and tau that give bijections G_i with Obj(G)
     sigma :: a -> ObjectSet
     tau :: a -> ObjectSet
@@ -36,7 +36,7 @@ data Groudit2by2 = Groudit2by2 { giPart::CyclicGroup2
 instance Show Groudit2by2 where
     show x = (show $ giPart x) ++ " on object " ++ (show $ whichObject x)
 
-instance FiniteGroupoid2 Groudit2by2 where
+instance FiniteGroupoid Groudit2by2 where
     groupoidinv a = Groudit2by2 { giPart = inv ( giPart a) , whichObject = whichObject a}
     identityMorphisms b = Groudit2by2 { giPart = identity , whichObject = b}
     sourceObject a = whichObject a
@@ -52,7 +52,7 @@ selectFirstMeetingCriteria (x:xs) f myB defaultVal = if (f x == myB) then x else
 mySwap :: (a,b) -> (b,a)
 mySwap (x,y) = (y,x)
 
-instance FiniteGroudit2 Groudit2by2 where
+instance FiniteGroudit Groudit2by2 where
     sigma a
         | ((giPart a == Id) && (whichObject a == Slot1)) = Slot1
         | (giPart a == Flip) && (whichObject a == Slot1) = Slot2
