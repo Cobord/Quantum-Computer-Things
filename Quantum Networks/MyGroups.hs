@@ -2,6 +2,8 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 
 module MyGroups
 ( listProduct,
@@ -50,6 +52,14 @@ class (Eq a) => FiniteGroup a where
 --    ((mult x (inv x)) == identity) = True
 --    ((mult (inv x) x) == identity) = True
 --    ((inv $ mult x y) == (mult (inv y) (inv x))) = True
+
+class SNatural a
+instance SNatural (SNat n)
+
+class (Eq a,SNatural b) => FiniteGroupParam a b where
+    multParam :: (a,b) -> (a,b) -> (a,b)
+    invParam :: (a,b) -> (a,b)
+    identityParam :: b -> (a,b)
 
 --g_1 \cdots g_n in the group are given and it multiplies them in that order
 listProduct :: (FiniteGroup a) => [a] -> a  
@@ -137,7 +147,7 @@ asInteger (OS x) = 1+ (asInteger x)
 instance Show (Ordinal n) where
   show x = show $ asInteger x
 
---newtype (Permutation n) = (SNat n,[(Ordinal n,Ordinal n)])
+data (Permutation n) = Permutation{myNum :: SNat n,transpositions::[(Ordinal n,Ordinal n)]}
 
 whereGoesHelper :: (Ordinal n,Ordinal n) -> Int -> Int
 whereGoesHelper (y1,y2) x
@@ -148,10 +158,10 @@ whereGoes :: [(Ordinal n,Ordinal n)] -> Int -> Int
 whereGoes [] x = x
 whereGoes (y:ys) x = whereGoes ys (whereGoesHelper y x)
 
---instance Eq (Permutation n) where
---    (n1,list1)==(n2,list2) = (n1==n2) && and [ (whereGoes list1 x) == (whereGoes list2 x) | x <- [0..(-1+numericVal n1)]]
+instance Eq (Permutation n) where
+    x1==x2 = (n1==(numericVal $ myNum x2)) && and [ (whereGoes (transpositions x1) x) == (whereGoes (transpositions x2) x) | x <- [0..(-1+n1)]] where n1=numericVal $ myNum x1
 
---instance FiniteGroup (Permutation n) where
---    mult (x1,x2) (y1,y2) = (x1,x2++y2)
---    inv (x1,x2) = (x1,reverse x2)
---    identity = (sing :: SNat n, [])
+instance FiniteGroupParam (Permutation n) (SNat n) where
+    multParam (x1,x2) (y1,y2) = (Permutation{myNum=x2,transpositions=(transpositions x1)++(transpositions y1)},x2)
+    invParam (x1,x2) = (Permutation{myNum=x2,transpositions=reverse (transpositions x1)},x2)
+    identityParam x2 = (Permutation{myNum=x2,transpositions=[]},x2)
