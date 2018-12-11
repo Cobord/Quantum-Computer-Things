@@ -1,5 +1,7 @@
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module MyGroups
 ( listProduct,
@@ -116,10 +118,40 @@ instance FiniteGroup DihedralGroup5 where
     mult a b = DihedralGroup5 {rotationPrefix=(plusMinus (rotationPrefix a) (rotationPrefix b) (flipped a)),flipped = (xor (flipped a) (flipped b))}
     inv a = invertPlusMinus (rotationPrefix a) (flipped a)
 
-data (CyclicGroup n) = CyclicGroup{underlyingVal::Integer,myN::SNat n}
+data (CyclicGroup n) = CyclicGroup{underlyingVal::Int,myN::SNat n}
 
 instance Eq (CyclicGroup n) where
     x==y = ((underlyingVal x) - (underlyingVal y) `mod` (numericVal (myN x)))==0
 
 instance Show (CyclicGroup n) where
     show a = (show $ underlyingVal a) ++ " mod " ++ (show $ myN a)
+
+data (Ordinal n) where
+  OZ :: Ordinal (S n)
+  OS :: Ordinal n -> Ordinal (S n)
+
+asInteger :: Ordinal n -> Int
+asInteger OZ = 0
+asInteger (OS x) = 1+ (asInteger x)
+  
+instance Show (Ordinal n) where
+  show x = show asInteger x
+
+--newtype (Permutation n) = (SNat n,[(Ordinal n,Ordinal n)])
+
+whereGoesHelper :: (Ordinal n,Ordinal n) -> Int -> Int
+whereGoesHelper (y1,y2) x
+                          | (x == asInteger y1) = asInteger y2
+                          | (x == asInteger y2) = asInteger y1
+                          | otherwise = x
+whereGoes :: [(Ordinal n,Ordinal n)] -> Int -> Int
+whereGoes [] x = x
+whereGoes (y:ys) x = whereGoes ys (whereGoesHelper y x)
+
+--instance Eq (Permutation n) where
+--    (n1,list1)==(n2,list2) = (n1==n2) && and [ (whereGoes list1 x) == (whereGoes list2 x) | x <- [0..(-1+numericVal n1)]]
+
+--instance FiniteGroup (Permutation n) where
+--    mult (x1,x2) (y1,y2) = (x1,x2++y2)
+--    inv (x1,x2) = (x1,reverse x2)
+--    identity = (sing :: SNat n, [])
