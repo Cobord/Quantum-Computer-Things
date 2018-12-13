@@ -4,18 +4,22 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, TemplateHaskellQuotes #-}
 
 module MyGroups
 ( listProduct,
   FiniteGroup(..),
+  FiniteGroupParam(..),
   CyclicGroup2(..),
   CyclicGroup5(..),
-  DihedralGroup5(..)
+  DihedralGroup5(..),
+  Permutation(..),
+  myThree,mySThree
 ) where
 
 --import Math.Combinat.Permutations
 
-data Nat = Z | S Nat
+data Nat = Z | S Nat deriving (Eq, Show)
 
 convertToNat :: Int -> Nat
 convertToNat x
@@ -42,6 +46,9 @@ numericVal :: SNat n -> Int
 numericVal SZ = 0
 numericVal (SS x) = 1 + numericVal x
 
+natVal :: SNat n -> Nat
+natVal x = convertToNat $ numericVal x
+
 class (Eq a) => FiniteGroup a where
     mult :: a -> a -> a
     inv :: a -> a
@@ -60,6 +67,7 @@ class (Eq a,SNatural b) => FiniteGroupParam a b where
     multParam :: (a,b) -> (a,b) -> (a,b)
     invParam :: (a,b) -> (a,b)
     identityParam :: b -> (a,b)
+    identityParam2 :: (a,b) -> (a,b)
 
 --g_1 \cdots g_n in the group are given and it multiplies them in that order
 listProduct :: (FiniteGroup a) => [a] -> a  
@@ -162,6 +170,14 @@ instance Eq (Permutation n) where
     x1==x2 = (n1==(numericVal $ myNum x2)) && and [ (whereGoes (transpositions x1) x) == (whereGoes (transpositions x2) x) | x <- [0..(-1+n1)]] where n1=numericVal $ myNum x1
 
 instance FiniteGroupParam (Permutation n) (SNat n) where
-    multParam (x1,x2) (y1,y2) = Permutation{myNum=x2,transpositions=(transpositions x1)++(transpositions y1)}
-    invParam (x1,x2) = Permutation{myNum=x2,transpositions=reverse (transpositions x1)}
-    identityParam x2 = Permutation{myNum=x2,transpositions=[]}
+    multParam (x1,x2) (y1,y2) = (Permutation{myNum=x2,transpositions=(transpositions x1)++(transpositions y1)},x2)
+    invParam (x1,x2) = (Permutation{myNum=x2,transpositions=reverse (transpositions x1)},x2)
+    identityParam x2 = (Permutation{myNum=x2,transpositions=[]},x2)
+    identityParam2 (x1,x2) = identityParam x2
+
+mySThree = (SS $ SS $ SS SZ)
+myThree = (natVal mySThree)
+instance FiniteGroup (Permutation myThree) where
+    mult x y = fst $ multParam (x,myNum x) (y,myNum y)
+    inv x = fst $ invParam (x,myNum x)
+    identity = Permutation{myNum=mySThree,transpositions=[]}
