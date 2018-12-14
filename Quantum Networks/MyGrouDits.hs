@@ -4,10 +4,12 @@ module MyGrouDits
 ( Groudit2by2
 ) where
 
+import Data.Maybe
 import MyGroups
 
 -- https://arxiv.org/pdf/1707.00966.pdf --
 
+data ObjectSetTriv = Slot0 deriving (Eq,Show,Read,Enum,Bounded)
 data ObjectSet = Slot1 | Slot2 deriving (Eq,Show,Read,Enum,Bounded)
 
 -- Groupoid with 2 objects
@@ -23,7 +25,7 @@ class (Eq a) => FiniteGroupoid2 a where
 -- the a itself stores the arrows
 -- when passing (a,b) that is meant to be an arrow a
 -- and that the source for that arrow is the second of that tuple
-class (Enum b,Bounded b,Eq a) => FiniteGroupoid a b where
+class (Bounded b,Eq a) => FiniteGroupoid a b where
     groupoidmult :: (a,b) -> (a,b) -> Maybe (a,b)
     groupoidinv :: (a,b) -> (a,b)
     identityMorphisms :: b -> (a,b)
@@ -41,6 +43,38 @@ instance (FiniteGroupoid2 a) => (FiniteGroupoid a ObjectSet) where
     identityMorphisms x2 = (identityMorphisms_2 x2, x2)
     sourceObject (x1,x2) = sourceObject_2 x1
     targetObject (x1,x2) = targetObject_2 x1
+
+instance (FiniteGroup a) => (FiniteGroupoid a ObjectSetTriv) where
+    groupoidmult (x1,x2) (y1,y2) = Just ((mult x1 y1),x2)
+    groupoidinv (x1,x2) = (inv x1,x2)
+    identityMorphisms x2 = (identity,x2)
+    sourceObject (_,x2) = x2
+    targetObject (_,x2) = x2
+
+leftHelper :: Maybe (a,b) -> Maybe (Either a c,Either b d)
+leftHelper Nothing = Nothing
+leftHelper temp = Just (Left (fst $ fromJust temp),Left (snd $ fromJust temp))
+rightHelper :: Maybe (a,b) -> Maybe (Either c a,Either d b)
+rightHelper Nothing = Nothing
+rightHelper temp =Just (Right (fst $ fromJust temp),Right (snd $ fromJust temp))
+
+instance (Bounded b,Bounded d) => Bounded (Either b d) where
+    minBound = Left minBound
+    maxBound = Right maxBound
+
+-- disjoint union of two groupoids, one with arrows a on objects c and another with b and d
+instance (FiniteGroupoid a b,FiniteGroupoid c d) => FiniteGroupoid (Either a c) (Either b d) where
+    groupoidmult (Left x,Left y) (Left z,Left w) = leftHelper (groupoidmult (x,y) (z,w))
+    groupoidmult (Right x,Right y) (Right z,Right w) = rightHelper (groupoidmult (x,y) (z,w))
+    groupoidmult _ _ = Nothing
+    identityMorphisms (Left x) = do let temp=(identityMorphisms x) in (Left (fst temp),Left (snd temp))
+    identityMorphisms (Right x) = do let temp=(identityMorphisms x) in (Right (fst temp),Right (snd temp))
+    sourceObject (Left x1,Left x2) = Left (sourceObject (x1,x2))
+    sourceObject (Right x1,Right x2) = Right (sourceObject (x1,x2))
+    targetObject (Left x1,Left x2) = Left (targetObject (x1,x2))
+    targetObject (Right x1,Right x2) = Right (targetObject (x1,x2))
+    groupoidinv (Left x1,Left x2) = do let temp=groupoidinv (x1,x2) in (Left (fst temp),Left (snd temp))
+    groupoidinv (Right x1,Right x2) = do let temp=groupoidinv (x1,x2) in (Right (fst temp),Right (snd temp))
 
 -- a groupoid with 2 objects might be a grouBit if you provide extra data
 class (FiniteGroupoid2 a) => FiniteGroudit2 a where

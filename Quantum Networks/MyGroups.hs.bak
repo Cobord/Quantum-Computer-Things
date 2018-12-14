@@ -14,10 +14,11 @@ module MyGroups
   CyclicGroup5(..),
   DihedralGroup5(..),
   Permutation(..),
-  myThree,mySThree
+  myNumEx,mySNumEx
 ) where
 
 --import Math.Combinat.Permutations
+import Data.Maybe
 
 data Nat = Z | S Nat deriving (Eq, Show)
 
@@ -63,6 +64,9 @@ class (Eq a) => FiniteGroup a where
 class SNatural a
 instance SNatural (SNat n)
 
+mySNumEx = (SS $ SS $ SS SZ)
+myNumEx = (natVal mySNumEx)
+
 class (Eq a,SNatural b) => FiniteGroupParam a b where
     multParam :: (a,b) -> (a,b) -> (a,b)
     invParam :: (a,b) -> (a,b)
@@ -72,14 +76,15 @@ class (Eq a,SNatural b) => FiniteGroupParam a b where
 --g_1 \cdots g_n in the group are given and it multiplies them in that order
 listProduct :: (FiniteGroup a) => [a] -> a  
 listProduct xs = foldl (\acc x -> mult acc x) identity xs
+listProductParam :: (FiniteGroupParam a b) => b-> [a] -> (a,b)
+listProductParam y xs = foldl multParam (identityParam y) (map (\x -> (x,y)) xs)
 
 data CyclicGroup2 = Id | Flip
                     deriving (Eq,Show,Read)
 
 instance FiniteGroup CyclicGroup2 where
-    mult Id Id = Id
+    mult Id x = x
     mult Flip Id = Flip
-    mult Id Flip = Flip
     mult Flip Flip = Id
     inv Id = Id
     inv Flip = Flip
@@ -122,9 +127,12 @@ xor:: Bool -> Bool -> Bool
 xor a b = a /= b
 
 --multiply or divide depending on the boolean argument
-plusMinus:: CyclicGroup5 -> CyclicGroup5 -> Bool -> CyclicGroup5
+plusMinus:: (FiniteGroup a) => a -> a -> Bool -> a
 plusMinus x y False = mult x y
 plusMinus x y True = mult x (inv y)
+plusMinusParam:: (FiniteGroupParam a b) => (a,b) -> (a,b) -> Bool -> (a,b)
+plusMinusParam x y False = multParam x y
+plusMinusParam x y True = multParam x (invParam y)
 
 invertPlusMinus:: CyclicGroup5 -> Bool -> DihedralGroup5
 invertPlusMinus r True = DihedralGroup5 {rotationPrefix = r,flipped=True}
@@ -138,11 +146,43 @@ instance FiniteGroup DihedralGroup5 where
 
 data (CyclicGroup n) = CyclicGroup{underlyingVal::Int,myN::SNat n}
 
+-- don't know why needed to do modulo twice to stop getting n mod n = n not 0
 instance Eq (CyclicGroup n) where
-    x==y = ((underlyingVal x) - (underlyingVal y) `mod` (numericVal (myN x)))==0
+    x==y = ((((underlyingVal x) - (underlyingVal y) `mod` (numericVal (myN x)))) `mod` (numericVal (myN x)))==0
 
 instance Show (CyclicGroup n) where
     show a = (show $ underlyingVal a) ++ " mod " ++ (show $ myN a)
+
+instance FiniteGroupParam (CyclicGroup n) (SNat n) where
+    multParam (x1,x2) (y1,y2) = (CyclicGroup{myN=x2,underlyingVal=(underlyingVal x1)+(underlyingVal y1)},x2)
+    invParam (x1,x2) = (CyclicGroup{myN=x2,underlyingVal=(-underlyingVal x1)},x2)
+    identityParam x2 = (CyclicGroup{myN=x2,underlyingVal=0},x2)
+    identityParam2 (_,x2) = identityParam x2
+
+y=CyclicGroup{underlyingVal=1,myN=mySNumEx}
+z=fst $ foldl multParam (y,mySNumEx) [(y,mySNumEx),(y,mySNumEx),(y,mySNumEx)]
+w = (y==(fst $ identityParam mySNumEx))
+
+data DihedralGroup n = DihedralGroup{ rotationPrefixParam::CyclicGroup n
+                                       , flippedParam :: Bool
+                                      } deriving (Eq)
+
+instance Show (DihedralGroup n) where
+    show a
+         | (flippedParam a) = (show (rotationPrefixParam a)) ++ "*Flip"
+         | (flippedParam a == False) = (show (rotationPrefixParam a))
+         | otherwise = "Error"
+
+invertPlusMinusParam:: SNat n -> CyclicGroup n -> Bool -> DihedralGroup n
+invertPlusMinusParam s r True = DihedralGroup {rotationPrefixParam = r,flippedParam=True}
+invertPlusMinusParam s r False = DihedralGroup {rotationPrefixParam = fst $ invParam (r,s),flippedParam=False}
+
+--realize the dihedral group as a group with it's multiplication and inversion operation
+instance FiniteGroupParam (DihedralGroup n) (SNat n) where
+    identityParam s = (DihedralGroup{rotationPrefixParam=fst $ identityParam s,flippedParam=False},s)
+    identityParam2 (_,s) = identityParam s
+    multParam (x,y) (z,w) = (DihedralGroup{rotationPrefixParam=fst (plusMinusParam ((rotationPrefixParam x),y) ((rotationPrefixParam z),w) (flippedParam x)),flippedParam = (xor (flippedParam x) (flippedParam z))},y)
+    invParam (a,y) = (invertPlusMinusParam y (rotationPrefixParam a) (flippedParam a),y)
 
 data (Ordinal n) where
   OZ :: Ordinal (S n)
@@ -151,7 +191,15 @@ data (Ordinal n) where
 asInteger :: Ordinal n -> Int
 asInteger OZ = 0
 asInteger (OS x) = 1+ (asInteger x)
-  
+
+getOrdinal :: SNat n -> Int -> Maybe (Ordinal n)
+getOrdinal SZ _ = Nothing
+getOrdinal (SS y) x
+               | x<0 = Nothing
+               | x==0 = Just OZ
+               | x>(numericVal y)=Nothing
+               | otherwise=Just (OS ( fromJust $ getOrdinal (y) (x-1)))
+
 instance Show (Ordinal n) where
   show x = show $ asInteger x
 
@@ -175,9 +223,18 @@ instance FiniteGroupParam (Permutation n) (SNat n) where
     identityParam x2 = (Permutation{myNum=x2,transpositions=[]},x2)
     identityParam2 (x1,x2) = identityParam x2
 
-mySThree = (SS $ SS $ SS SZ)
-myThree = (natVal mySThree)
-instance FiniteGroup (Permutation myThree) where
+x1Ex=Permutation{myNum=mySNumEx,transpositions=[(OZ, OS OZ),(OZ , OS (OS OZ))]}
+x2Ex=multParam (x1Ex,mySNumEx) (x1Ex,mySNumEx)
+x2ExFun=whereGoes (transpositions $ fst x2Ex)
+x1ExFun=whereGoes (transpositions x1Ex)
+--map x1ExFun [0,1,2]
+
+readingWord :: Permutation n -> [Int]
+readingWord sigma = take (numericVal $ myNum sigma) (map (whereGoes ( transpositions sigma)) [0..])
+
+-- myNumEx is not matching ('S ('S ('S 'Z)))
+-- something about rigid type variable
+instance FiniteGroup (Permutation myNumEx) where
     mult x y = fst $ multParam (x,myNum x) (y,myNum y)
     inv x = fst $ invParam (x,myNum x)
-    identity = Permutation{myNum=mySThree,transpositions=[]}
+    --identity = fst $ identityParam2 (Permutation{myNum=mySNumEx,transpositions=[]},mySNumEx)
