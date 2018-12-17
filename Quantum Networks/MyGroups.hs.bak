@@ -7,7 +7,7 @@
 {-# LANGUAGE TemplateHaskell, TemplateHaskellQuotes #-}
 
 module MyGroups
-( listProduct,
+( Nat,SNat n,Ordinal n,listProduct,
   FiniteGroup(..),
   FiniteGroupParam(..),
   CyclicGroup2(..),
@@ -98,8 +98,12 @@ instance Enum CyclicGroup2 where
     fromEnum Id = 0
     fromEnum Flip = 1
 
+instance Bounded CyclicGroup2 where
+    minBound = Id
+    maxBound = Flip
+
 data CyclicGroup5 = RotZero | RotOne | RotTwo | RotThree | RotFour
-                    deriving (Eq,Show,Read,Enum)
+                    deriving (Eq,Show,Read,Enum,Bounded)
 
 --Use the isomorphism of cyclic group of order n with addition modulo n by using the enum
 --To change the group to a different order add more or less Rots and modify the 5 below to n
@@ -224,8 +228,8 @@ instance FiniteGroupParam (Permutation n) (SNat n) where
     identityParam2 (x1,x2) = identityParam x2
 
 x1Ex=Permutation{myNum=mySNumEx,transpositions=[(OZ, OS OZ),(OZ , OS (OS OZ))]}
-x2Ex=multParam (x1Ex,mySNumEx) (x1Ex,mySNumEx)
-x2ExFun=whereGoes (transpositions $ fst x2Ex)
+x2Ex=fst $ multParam (x1Ex,mySNumEx) (x1Ex,mySNumEx)
+x2ExFun=whereGoes (transpositions x2Ex)
 x1ExFun=whereGoes (transpositions x1Ex)
 --map x1ExFun [0,1,2]
 
@@ -234,7 +238,13 @@ readingWord sigma = take (numericVal $ myNum sigma) (map (whereGoes ( transposit
 
 -- myNumEx is not matching ('S ('S ('S 'Z)))
 -- something about rigid type variable
-instance FiniteGroup (Permutation myNumEx) where
+instance FiniteGroup (Permutation ('S ('S ('S 'Z)))) where
     mult x y = fst $ multParam (x,myNum x) (y,myNum y)
     inv x = fst $ invParam (x,myNum x)
-    --identity = fst $ identityParam2 (Permutation{myNum=mySNumEx,transpositions=[]},mySNumEx)
+    identity = fst $ identityParam mySNumEx
+
+sym3_id=Permutation{myNum=mySNumEx,transpositions=[]}
+sym3_102=Permutation{myNum=mySNumEx,transpositions=[(OS OZ,OZ)]}
+--x==(mult y y) is True as it should be
+sym3_120=Permutation{myNum=mySNumEx,transpositions=[(OS OZ,OZ),(OS (OS OZ),OZ)]}
+--map (whereGoes (transpositions $ mult sym3_102 sym3_120)) [0..2] gives [2,1,0]

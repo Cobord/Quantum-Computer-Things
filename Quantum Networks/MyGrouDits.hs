@@ -1,50 +1,36 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module MyGrouDits
-( Groudit2by2
+( Groupoid,
+  FiniteGroudit,
+  DisjointFormFiniteGroupoid
 ) where
 
 import Data.Maybe
+import System.Random
+import Data.List
 import MyGroups
 
 -- https://arxiv.org/pdf/1707.00966.pdf --
 
-data ObjectSetTriv = Slot0 deriving (Eq,Show,Read,Enum,Bounded)
-data ObjectSet = Slot1 | Slot2 deriving (Eq,Show,Read,Enum,Bounded)
-
--- Groupoid with 2 objects
--- more examples use this specific case so did first
-class (Eq a) => FiniteGroupoid2 a where
-    groupoidmult_2 :: a -> a -> Maybe a
-    groupoidinv_2 :: a -> a
-    identityMorphisms_2 :: ObjectSet -> a
-    sourceObject_2 :: a -> ObjectSet
-    targetObject_2 :: a -> ObjectSet
+data ObjectSet1 = Slot0 deriving (Eq,Show,Read,Enum,Bounded)
+data ObjectSet2 = Slot1 | Slot2 deriving (Eq,Show,Read,Enum,Bounded)
+data ObjectSet5 = SlotA | SlotB | SlotC | SlotD | SlotE deriving (Eq,Show,Read,Enum,Bounded)
+data ObjectSet6 = Slot012 | Slot021 | Slot102 | Slot120 | Slot201 | Slot210 deriving (Eq,Show,Read,Enum,Bounded)
 
 -- the general groupoid where the set of objects is b
 -- the a itself stores the arrows
 -- when passing (a,b) that is meant to be an arrow a
 -- and that the source for that arrow is the second of that tuple
-class (Bounded b,Eq a) => FiniteGroupoid a b where
+class Groupoid a b where
     groupoidmult :: (a,b) -> (a,b) -> Maybe (a,b)
     groupoidinv :: (a,b) -> (a,b)
     identityMorphisms :: b -> (a,b)
     sourceObject :: (a,b) -> b
     targetObject :: (a,b) -> b
 
-unpack :: (Maybe a,b) -> Maybe (a,b)
-unpack (Nothing,y) = Nothing
-unpack (Just x,y) = Just (x,y)
-
--- a groupoid with 2 objects is a general groupoid
-instance (FiniteGroupoid2 a) => (FiniteGroupoid a ObjectSet) where
-    groupoidmult (x1,x2) (y1,y2) = unpack (groupoidmult_2 x1 y1,x2)
-    groupoidinv (x1,x2) = (groupoidinv_2 x1,targetObject_2 x1)
-    identityMorphisms x2 = (identityMorphisms_2 x2, x2)
-    sourceObject (x1,x2) = sourceObject_2 x1
-    targetObject (x1,x2) = targetObject_2 x1
-
-instance (FiniteGroup a) => (FiniteGroupoid a ObjectSetTriv) where
+instance (FiniteGroup a) => (Groupoid a ObjectSet1) where
     groupoidmult (x1,x2) (y1,y2) = Just ((mult x1 y1),x2)
     groupoidinv (x1,x2) = (inv x1,x2)
     identityMorphisms x2 = (identity,x2)
@@ -63,7 +49,7 @@ instance (Bounded b,Bounded d) => Bounded (Either b d) where
     maxBound = Right maxBound
 
 -- disjoint union of two groupoids, one with arrows a on objects c and another with b and d
-instance (FiniteGroupoid a b,FiniteGroupoid c d) => FiniteGroupoid (Either a c) (Either b d) where
+instance (Groupoid a b,Groupoid c d) => Groupoid (Either a c) (Either b d) where
     groupoidmult (Left x,Left y) (Left z,Left w) = leftHelper (groupoidmult (x,y) (z,w))
     groupoidmult (Right x,Right y) (Right z,Right w) = rightHelper (groupoidmult (x,y) (z,w))
     groupoidmult _ _ = Nothing
@@ -76,92 +62,74 @@ instance (FiniteGroupoid a b,FiniteGroupoid c d) => FiniteGroupoid (Either a c) 
     groupoidinv (Left x1,Left x2) = do let temp=groupoidinv (x1,x2) in (Left (fst temp),Left (snd temp))
     groupoidinv (Right x1,Right x2) = do let temp=groupoidinv (x1,x2) in (Right (fst temp),Right (snd temp))
 
--- a groupoid with 2 objects might be a grouBit if you provide extra data
-class (FiniteGroupoid2 a) => FiniteGroudit2 a where
-    --Pair of balancers sigma and tau that give bijections G_i with Obj(G)
-    sigma_2 :: a -> ObjectSet
-    tau_2 :: a -> ObjectSet
-    -- if x :: a is x=(g,i) then sigma x is sigma_i (g), these can be reasonably complicated bijections if d big enough
-    sigmaInverse_2 :: ObjectSet -> ObjectSet -> a
-    tauInverse_2 :: ObjectSet -> ObjectSet -> a
-    sigma1_2 :: a -> (ObjectSet,ObjectSet)
-    sigma2_2 :: (ObjectSet,ObjectSet) -> a
-    tau1_2 :: a -> (ObjectSet,ObjectSet)
-    tau2_2 :: (ObjectSet,ObjectSet) -> a
-    -- From these balancers contstruct biunitary
-    biunitary_2 :: a -> a
-
--- a general groupoid might be a grouDit if you provide extra data
-class (FiniteGroupoid a b) => FiniteGroudit a b where
-    --Pair of balancers sigma and tau that give bijections G_i with Obj(G)
-    sigma :: a -> b
-    tau :: a -> b
-    sigmaInverse :: b -> b -> a
-    tauInverse :: b -> b -> a
-    sigma1 :: a -> (b,b)
-    sigma2 :: (b,b) -> a
-    tau1 :: a -> (b,b)
-    tau2 :: (b,b) -> a
-    -- From these balancers contstruct biunitary
-    biunitary :: (a,b) -> (a,b)
-
--- arrows are stored as the element in Z_2 and which object they are on
--- this is the groupoid that is made of two copies of BZ_2
--- whichObject says which copy talking about
-data Groudit2by2 = Groudit2by2 { giPart::CyclicGroup2
-                                       , whichObject :: ObjectSet
-                                      } deriving (Eq)
-
-instance Show Groudit2by2 where
-    show x = (show $ giPart x) ++ " on object " ++ (show $ whichObject x)
-
--- this is a groupoid on 2 objects, show how
-instance FiniteGroupoid2 Groudit2by2 where
-    groupoidinv_2 a = Groudit2by2 { giPart = inv ( giPart a) , whichObject = whichObject a}
-    identityMorphisms_2 b = Groudit2by2 { giPart = identity , whichObject = b}
-    sourceObject_2 a = whichObject a
-    targetObject_2 a = whichObject a
-    groupoidmult_2 a b
-                     | (sourceObject_2 a /= targetObject_2 b) = Nothing
-                     | otherwise = Just Groudit2by2 { giPart = mult (giPart a) (giPart b) , whichObject = whichObject a}
-
 -- list of a's, a function f to b's, a y that is desired and a default value
 -- then select the first of that list such that f(x)=y
 selectFirstMeetingCriteria :: (Eq b) => [a] -> (a -> b) -> b -> a -> a
 selectFirstMeetingCriteria [] _ _ defaultVal = defaultVal
 selectFirstMeetingCriteria (x:xs) f myB defaultVal = if (f x == myB) then x else (selectFirstMeetingCriteria xs f myB defaultVal)
-
+-- just swap
 mySwap :: (a,b) -> (b,a)
 mySwap (x,y) = (y,x)
 
--- this is a grouBit, show how by specifying the extra data
-instance FiniteGroudit2 Groudit2by2 where
-    sigma_2 a
-        | ((giPart a == Id) && (whichObject a == Slot1)) = Slot1 -- epsilon_1 (0) = 0
-        | (giPart a == Flip) && (whichObject a == Slot1) = Slot2 -- epsilon_1 (1) = 1
-        | (giPart a == Id) && (whichObject a == Slot2) = Slot1 -- epsilon_2 (0) = 0
-        | (giPart a == Flip) && (whichObject a == Slot2) = Slot2 -- epsilon_2 (1) = 1
-    tau_2 a
-         | (giPart a == Id) && (whichObject a == Slot1) = Slot1 -- tau_1 (0)=0
-         | (giPart a == Flip) && (whichObject a == Slot1) = Slot2 -- tau_1 (1)=1
-         | (giPart a == Id) && (whichObject a == Slot2) = Slot1 -- tau_2 (0) = 0
-         | (giPart a == Flip) && (whichObject a == Slot2) = Slot2 -- tau_2 (1) = 1
-    sigmaInverse_2 a b = selectFirstMeetingCriteria allPossible sigma_2 b (head allPossible) where allPossible=[Groudit2by2{giPart= x,whichObject=a}| x <- [(toEnum y) :: CyclicGroup2 | y <- [0,1]]]
-    tauInverse_2 a b = selectFirstMeetingCriteria allPossible tau_2 b (head allPossible) where allPossible=[Groudit2by2{giPart= x,whichObject=a}| x <- [(toEnum y) :: CyclicGroup2 | y <- [0,1]]]
-    sigma1_2 a = (whichObject a,sigma_2 a)
-    tau1_2 a = (whichObject a,tau_2 a)
-    sigma2_2 (a,b) = sigmaInverse_2 a b
-    tau2_2 (a,b) = tauInverse_2 a b
-    biunitary_2 a = tau2_2 $ mySwap $ sigma1_2 a
+-- put some shuffling function here with first argument being the list to shuffle
+-- the second the length and the third a source of randomness
+shuffle :: (RandomGen gen) => [a] -> Int -> gen -> [a]
+shuffle y _ _ = y
+myShuffle :: (RandomGen gen,Bounded b,Enum b,Eq b) => gen -> b -> b
+myShuffle g x = (shuffle y (length y) g)!!(fromJust $ elemIndex x y) where y=[minBound..maxBound]
+myShuffle2 :: (Bounded b,Enum b,Eq b) => Int -> b -> b
+myShuffle2 z = myShuffle (mkStdGen z)
 
--- a grouBit is also a grouDit
-instance (FiniteGroudit2 a) => (FiniteGroudit a ObjectSet) where
-    sigma = sigma_2
-    tau = tau_2
-    sigmaInverse = sigmaInverse_2
-    tauInverse = tauInverse_2
-    sigma1 = sigma1_2
-    sigma2 = sigma2_2
-    tau1 = tau1_2
-    tau2 = tau2_2
-    biunitary (x,y) = (z , sourceObject_2 z) where z=biunitary_2 x
+class (FiniteGroup a,Eq b) => DisjointFormFiniteGroupoid a b where
+    df_groupoidmult :: (a,b) -> (a,b) -> Maybe (a,b)
+    df_groupoidinv :: (a,b) -> (a,b)
+    df_identityMorphisms :: b -> (a,b)
+    df_sourceObject :: (a,b) -> b
+    df_targetObject :: (a,b) -> b
+    df_giPart :: (a,b) -> a
+instance (FiniteGroup a,Eq b) => DisjointFormFiniteGroupoid a b where
+    df_groupoidmult (x,y) (z,w)
+                            | y==w = Just (mult x z,y)
+                            | otherwise = Nothing
+    df_groupoidinv (x,y) = (inv x,y)
+    df_identityMorphisms y = (identity , y)
+    df_sourceObject (x,y) = y
+    df_targetObject (x,y) = y
+    df_giPart (x,y) = x
+-- a general groupoid might be a grouDit if you provide extra data
+
+-- should be from import Data.Types.Isomorphic
+class Iso a b where
+    to :: a -> b
+instance Iso CyclicGroup2 ObjectSet2 where
+    to x = ([(minBound)..(maxBound)])!!(fromJust $ elemIndex x y) where y=[(minBound)..(maxBound)]
+instance Iso CyclicGroup5 ObjectSet5 where
+    to x = ([(minBound)..(maxBound)])!!(fromJust $ elemIndex x y) where y=[(minBound)..(maxBound)]
+class (DisjointFormFiniteGroupoid a b,Iso a b,Bounded a,Bounded b,Enum a,Enum b) => FiniteGroudit a b where
+    --Pair of balancers sigma and tau that give bijections G_i with Obj(G)
+    -- the second of the pair is the i, the first is an element of G_i they are bijections to Obj(G) which is the set of b
+    sigma :: (a,b) -> b
+    tau :: (a,b) -> b
+    -- sigmaInverse x y = (z,x) such that sigma((z,x))=y
+    -- ordered this way so that (sigmaInverse x) as a function b -> (a,b) would be ( sigma_x^{-1} ? , x)
+    sigmaInverse :: b -> b -> (a,b)
+    -- tauInverse x y = (z,x) such that tau((z,x))=y
+    tauInverse :: b -> b -> (a,b)
+    sigma1 :: (a,b) -> (b,b)
+    sigma2 :: (b,b) -> (a,b)
+    -- sigma2 sigma1 (x,y) = sigma2 (y,sigma (x,y)) = (z,y) with sigma((z,y))=sigma (x,y) = (x,y)
+    -- same pattern but with tau
+    tau1 :: (a,b) -> (b,b)
+    tau2 :: (b,b) -> (a,b)
+    -- From these balancers contstruct biunitary
+    biunitary :: (a,b) -> (a,b)
+instance (Enum b,Enum a,Bounded a,Bounded b,Iso a b,DisjointFormFiniteGroupoid a b) => (FiniteGroudit a b) where
+    sigma (x,y)=myShuffle2 (fromEnum y) (to x)
+    tau (x,y) = myShuffle2 (-1-fromEnum y) (to x)
+    sigmaInverse x y = selectFirstMeetingCriteria allPossible sigma y (head allPossible) where allPossible = [(z,x)| z <- [minBound..maxBound]]
+    tauInverse x y = selectFirstMeetingCriteria allPossible tau y (head allPossible) where allPossible = [(z,x)| z <- [minBound..maxBound]]
+    sigma1 (x,y) = (y,sigma (x,y))
+    tau1 (x,y) = (y,tau (x,y))
+    sigma2 (x,y) = sigmaInverse x y
+    tau2 (x,y) = tauInverse x y
+    biunitary (x,y) = tau2 $ mySwap $ sigma1 (x,y)
