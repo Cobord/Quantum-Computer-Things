@@ -124,6 +124,14 @@ reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGat
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices2 xs)
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices2 xs)
 
+-- also say there is a fixed number z of logical qubits
+reduceGateIndices3:: Int -> InternalIndices Int n -> InternalIndices Int n
+reduceGateIndices3 z (Lgcl x) = Lgcl (x `mod` z)
+reduceGateIndices3 z (Int1 x xs) = Int1 (x `mod` (codeLengths Steane)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices3 z xs)
+
 data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 | Swap2 | Tof3 deriving (Read, Show, Eq)
 
 -- how many qubits does this kind of gate operate on

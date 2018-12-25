@@ -75,7 +75,6 @@ data InternalIndices a n where
 deriving instance Eq a => Eq (InternalIndices a n)
 
 toList2 :: InternalIndices a n -> [a]
---toList2 Nil2 = []
 toList2 (Lgcl x) = [x]
 toList2 (Int1 x xs) = x : toList2 xs
 toList2 (Int2 x xs) = x : toList2 xs
@@ -124,6 +123,14 @@ reduceGateIndices2 (Int1 x xs) = Int1 (x `mod` (codeLengths Steane)) (reduceGate
 reduceGateIndices2 (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGateIndices2 xs)
 reduceGateIndices2 (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices2 xs)
 reduceGateIndices2 (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices2 xs)
+
+-- similar to above but with (InternalIndices Int n) format instead of vector and list format
+reduceGateIndices3:: Int -> InternalIndices Int n -> InternalIndices Int n
+reduceGateIndices3 z (Lgcl x) = Lgcl (x `mod` z)
+reduceGateIndices3 z (Int1 x xs) = Int1 (x `mod` (codeLengths Steane)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices3 z xs)
+reduceGateIndices3 z (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices3 z xs)
 
 data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 | Swap2 | Tof3 deriving (Read, Show, Eq)
 
