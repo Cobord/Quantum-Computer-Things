@@ -11,6 +11,7 @@ import Data.Maybe
 import System.Random
 import Data.List
 import MyGroups
+import CopyShuffle as CopiedS
 
 -- https://arxiv.org/pdf/1707.00966.pdf --
 
@@ -73,10 +74,10 @@ mySwap (x,y) = (y,x)
 
 -- put some shuffling function here with first argument being the list to shuffle
 -- the second the length and the third a source of randomness
-shuffle :: (RandomGen gen) => [a] -> Int -> gen -> [a]
-shuffle y _ _ = y
+my_shuffle :: (RandomGen gen) => [a] -> Int -> gen -> [a]
+my_shuffle = CopiedS.shuffle'
 myShuffle :: (RandomGen gen,Bounded b,Enum b,Eq b) => gen -> b -> b
-myShuffle g x = (shuffle y (length y) g)!!(fromJust $ elemIndex x y) where y=[minBound..maxBound]
+myShuffle g x = (my_shuffle y (length y) g)!!(fromJust $ elemIndex x y) where y=[minBound..maxBound]
 myShuffle2 :: (Bounded b,Enum b,Eq b) => Int -> b -> b
 myShuffle2 z = myShuffle (mkStdGen z)
 
@@ -133,3 +134,7 @@ instance (Enum b,Enum a,Bounded a,Bounded b,Iso a b,DisjointFormFiniteGroupoid a
     sigma2 (x,y) = sigmaInverse x y
     tau2 (x,y) = tauInverse x y
     biunitary (x,y) = tau2 $ mySwap $ sigma1 (x,y)
+
+-- if you did sigma (RotFour,Slot021) it would give the error that there is no instance of Iso between CyclicGroup5 and ObjectSet6
+-- that would not be appplicable for a finite groudit, but below with CyclicGroup5 and ObjectSet5 is fine
+example = sigma (RotFour,SlotD)
