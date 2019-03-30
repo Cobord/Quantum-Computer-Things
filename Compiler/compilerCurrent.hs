@@ -132,7 +132,15 @@ reduceGateIndices3 z (Int2 x xs) = Int2 (x `mod` (codeLengths BitFlip)) (reduceG
 reduceGateIndices3 z (Int3 x xs) = Int3 (x `mod` (codeLengths SignFlip)) (reduceGateIndices3 z xs)
 reduceGateIndices3 z (Int4 x xs) = Int4 (x `mod` (codeLengths Shor)) (reduceGateIndices3 z xs)
 
+data ParameterizedRZ1 = ParameterizedRZ1{rotation_angle::Float} deriving (Read,Show,Eq)
+data ParameterizedRFull1 = ParameterizedRFull1{alpha::Float,beta::Float,theta::Float} deriving (Read,Show,Eq)
+promote :: ParameterizedRZ1 -> ParameterizedRFull1
+promote rzgate = ParameterizedRFull1{alpha=0,beta=0,theta=(rotation_angle rzgate)}
+newtype ParameterizedGateNames = ParameterizedGateNames{my_param_gate::Either ParameterizedRZ1 ParameterizedRFull1}
+
 data GateNames = PauliX1 | PauliY1 | PauliZ1 | Hadamard1 | QuarterPhase1 | SqrtSwap2 | CNOT2 | Swap2 | Tof3 deriving (Read, Show, Eq)
+
+newtype GateNamesWithParams = GateDataWithParams{my_name::Either GateNames ParameterizedGateNames}
 
 -- how many qubits does this kind of gate operate on
 arity::GateNames -> Int
@@ -145,6 +153,12 @@ arity SqrtSwap2 = 2
 arity CNOT2 = 2
 arity Swap2 = 2
 arity Tof3 = 3
+
+arity_param :: ParameterizedGateNames -> Int
+arity_param _ = 1
+
+arity_combined :: GateNamesWithParams -> Int
+arity_combined x = either arity arity_param (my_name x)
 
 -- A gate is given as a name and a list of involved qubits
 data GateData n = GateData{name::GateNames, myinvolvedQubits::[InternalIndices Int n]} deriving (Eq,Show)
